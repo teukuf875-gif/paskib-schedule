@@ -127,6 +127,9 @@
   #daftarGanti .dot.hijau{background:#2e9e5b;} #daftarGanti .dot.kuning{background:#d9a400;} #daftarGanti .dot.merah{background:#c62828;}
   #daftarGanti .cnt{font-size:11px;color:var(--abu);font-weight:700;}
   #legendFrekuensi{font-size:12px;color:var(--abu);margin-top:8px;line-height:1.6;}
+  .tbl-judul{font-size:13px;font-weight:700;color:var(--hijau-tua);margin:12px 0 2px;}
+  .tbl-judul.beda{color:var(--merah);}
+  .tbl-note{font-size:11px;color:var(--abu);margin-bottom:2px;}
 
 @media print{
     #pinGate,#modalGanti{display:none !important;}
@@ -168,7 +171,7 @@
   <div class="mbox">
     <h3>Ganti pemain</h3>
     <div class="info" id="infoGanti"></div>
-    <label for="cariGanti">Cari nama pengganti (wajib ukuran sama, hanya yang belum tampil minggu ini)</label>
+    <label for="cariGanti">Cari nama pengganti (hanya yang belum tampil minggu ini)</label>
     <input id="cariGanti" type="text" placeholder="Ketik nama..." oninput="renderDaftarGanti()">
     <div id="legendFrekuensi"></div>
     <div id="daftarGanti"></div>
@@ -283,6 +286,7 @@ const LK_KEY = 'paskib_lineup_khusus_v1';
 const EKSTRA_KEY = 'paskib_ekstra_v1';
 const BLK_KEY = 'paskib_blokir_v1';
 const MANUAL_KEY = 'paskib_manual_edit_v1';
+const RIWAYAT_KEY = 'paskib_riwayat_v1';
 const PIN_GURU = '123';
 let bulanPlanGlobal = [];
 let targetGanti = null;
@@ -321,6 +325,7 @@ function tandaiTersimpan(prefix){
 
 function hapusSiswa(id){
   siswa = siswa.filter(s => s.id !== id);
+  try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
   simpanData();
   render();
 }
@@ -329,6 +334,7 @@ function hapusSemuaSiswa(){
   if(!confirm('Hapus semua data siswa? Tindakan ini tidak bisa dibatalkan.')) return;
   siswa = [];
   idCounter = 1;
+  try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
   simpanData();
   render();
 }
@@ -376,6 +382,7 @@ function importExcel(event){
       try{ localStorage.removeItem(LK_KEY); }catch(e){ console.error(e); }
       try{ localStorage.removeItem(EKSTRA_KEY); }catch(e){ console.error(e); }
       try{ localStorage.removeItem(MANUAL_KEY); }catch(e){ console.error(e); }
+      try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){ console.error(e); }
       const lkSheets = sheetNama.filter(n => n.toLowerCase().includes('line up') || n.toLowerCase().includes('lineup'));
       for(const nm of lkSheets){
         const p = imporSheetLK(wb.Sheets[nm]);
@@ -1100,6 +1107,7 @@ function muatManual(){ try{ return JSON.parse(localStorage.getItem(MANUAL_KEY)) 
 function simpanManual(o){ try{ localStorage.setItem(MANUAL_KEY, JSON.stringify(o)); }catch(e){ console.error(e); } }
 function slotKey(ctx, slot){ return ctx + '-' + slot; }
 function isEdited(ctx, slot){ const m = muatManual(); return Object.prototype.hasOwnProperty.call(m, slotKey(ctx, slot)); }
+function adaEditMinggu(bid, ming){ const m = muatManual(); const p = bid + '-' + ming + '-'; return Object.keys(m).some(k => k.indexOf(p) === 0); }
 function gridHtml(w, idCtx){
   const posisiNama = [
     ['BARIS 1','KIRI'],['BARIS 1','TENGAH'],['BARIS 1','KANAN'],
@@ -1190,15 +1198,21 @@ function tampilkanJadwal(bulanPlan){
         '<div class="warn">Bulan dilewati: kurang dari 4 hari Senin.</div>';
     } else {
       const bid = b.thn + '-' + b.bln;
-      const wk5 = b.t5 ? weekHtml('Senin ke-5', b.t5, 'PUTIH-PUTIH', b.w5, b.khusus5, false, bid + '-5') : '';
+      // Minggu yang diedit manual ikut dihitung line up khusus (KHUSUS + EDIT di web).
+      const k1 = b.khusus1 || (adaEditMinggu(bid,'1') ? true : false);
+      const k2 = b.khusus2 || (adaEditMinggu(bid,'2') ? true : false);
+      const k3 = b.khusus3 || (adaEditMinggu(bid,'3') ? true : false);
+      const k4 = b.khusus4 || (adaEditMinggu(bid,'4') ? true : false);
+      const k5 = b.khusus5 || (b.t5 && adaEditMinggu(bid,'5') ? true : false);
+      const wk5 = b.t5 ? weekHtml('Senin ke-5', b.t5, 'PUTIH-PUTIH', b.w5, k5, false, bid + '-5') : '';
       const ekstraHtml = (b.ekstra || []).map((e, ei) => weekHtml('★ EKSTRA', e.tanggal, '', e.w, 'ekstra', true, bid + '-e' + ei)).join('');
       card.innerHTML =
         '<div class="judul ' + jdlKelas + '">' + NAMA_BULAN[b.bln] + ' ' + b.thn + '</div>' +
         '<div class="weeks4">' +
-          weekHtml('Senin ke-1', b.t1, 'PASKIBRA', b.w1, b.khusus1, false, bid + '-1') +
-          weekHtml('Senin ke-2', b.t2, 'PUTIH-PUTIH', b.w2, b.khusus2, false, bid + '-2') +
-          weekHtml('Senin ke-3', b.t3, 'PASKIBRA', b.w3, b.khusus3, false, bid + '-3') +
-          weekHtml('Senin ke-4', b.t4, 'PUTIH-PUTIH', b.w4, b.khusus4, false, bid + '-4') +
+          weekHtml('Senin ke-1', b.t1, 'PASKIBRA', b.w1, k1, false, bid + '-1') +
+          weekHtml('Senin ke-2', b.t2, 'PUTIH-PUTIH', b.w2, k2, false, bid + '-2') +
+          weekHtml('Senin ke-3', b.t3, 'PASKIBRA', b.w3, k3, false, bid + '-3') +
+          weekHtml('Senin ke-4', b.t4, 'PUTIH-PUTIH', b.w4, k4, false, bid + '-4') +
           wk5 +
         '</div>' +
         ekstraHtml;
@@ -1223,6 +1237,7 @@ function tampilkanJadwal(bulanPlan){
       '</tbody>' +
     '</table>';
   hasil.appendChild(rekapCard);
+  try{ simpanRiwayat(); }catch(e){}
 }function toggleJadwalSiswa(btn, jadwal){
   const tr = btn.closest('tr').nextElementSibling;
   if(!tr) return;
@@ -1292,8 +1307,8 @@ function bukaGanti(ctx, slot){
   const acuan = ukuranAcuan(ctx, slot);
   const cur = arr[slot];
   document.getElementById('infoGanti').innerHTML = cur
-    ? ('Sekarang: <b>'+esc(cur.nama)+'</b> ('+esc(cur.ukuran)+'/'+esc(cur.jk)+') — pengganti wajib ukuran <b>'+esc(acuan)+'</b>.')
-    : ('Slot kosong'+(acuan?(' — acuan baris ukuran <b>'+esc(acuan)+'</b>. Pilih ukuran '+esc(acuan)+'.'):' — pilih pengganti.'));
+    ? ('Sekarang: <b>'+esc(cur.nama)+'</b> ('+esc(cur.ukuran)+'/'+esc(cur.jk)+') — Tabel 1 = ukuran <b>'+esc(acuan)+'</b>, Tabel 2 = beda ukuran (jadi <b>line up khusus</b>).')
+    : ('Slot kosong'+(acuan?(' — acuan baris ukuran <b>'+esc(acuan)+'</b>. Tabel 2 = beda ukuran (jadi <b>line up khusus</b>).'):' — pilih pengganti.'));
   document.getElementById('cariGanti').value='';
   document.getElementById('modalGanti').style.display='flex';
   renderDaftarGanti();
@@ -1320,38 +1335,53 @@ function warnaFrekuensi(jumlah, min, maks){
   if(jumlah===maks) return 'merah';
   return 'kuning';
 }
+function barisOpsi(s, freq, min, maks, curId, beda){
+  const w = warnaFrekuensi(freq[s.id]||0, min, maks);
+  return '<div class="opsi '+w+'"><span><span class="dot '+w+'"></span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+' <span class="cnt">'+(freq[s.id]||0)+'x</span>'+(s.id===curId?' ★':'')+'</span><button onclick="simpanGanti('+s.id+','+(beda?'true':'false')+')">Pilih</button></div>';
+}
 function renderDaftarGanti(){
   if(!targetGanti) return;
   const q = (document.getElementById('cariGanti').value||'').toLowerCase();
   const acuan = ukuranAcuan(targetGanti.ctx, targetGanti.slot);
   const arr = getArrRef(targetGanti.ctx);
   const curId = arr && arr[targetGanti.slot] ? arr[targetGanti.slot].id : null;
-  // Filter 1 (pilihan user): sembunyikan yang sudah tampil di minggu yang sama (9 slot ctx ini).
+  // Sembunyikan yang sudah tampil di minggu yang sama (9 slot ctx ini) — berlaku di kedua tabel.
   const tampilMingguIni = new Set((arr||[]).filter(Boolean).map(s=>s.id));
   const {map:freq, min, maks} = petaFrekuensi();
-  let list = siswa.filter(s => (!acuan || s.ukuran===acuan) && (s.id===curId || !tampilMingguIni.has(s.id)));
+  const dasar = siswa.filter(s => s.id===curId || !tampilMingguIni.has(s.id));
   const disembunyikan = (arr||[]).filter(Boolean).length - (curId&&tampilMingguIni.has(curId)?1:0);
-  if(q) list = list.filter(s => s.nama.toLowerCase().includes(q));
-  list = list.slice().sort((a,b)=>(freq[a.id]-freq[b.id])||a.nama.localeCompare(b.nama,'id'));
+  const saring = (l) => {
+    let r = q ? l.filter(s => s.nama.toLowerCase().includes(q)) : l.slice();
+    return r.sort((a,b)=>(freq[a.id]-freq[b.id])||a.nama.localeCompare(b.nama,'id'));
+  };
+  const listSama = saring(dasar.filter(s => !acuan || s.ukuran===acuan));
+  const listBeda = acuan ? saring(dasar.filter(s => s.ukuran!==acuan)) : [];
   const box = document.getElementById('daftarGanti');
   const legend = document.getElementById('legendFrekuensi');
   if(legend) legend.innerHTML = '<span class="dot hijau" style="width:10px;height:10px;border-radius:50%;display:inline-block;background:#2e9e5b;"></span> Jarang ('+min+'x) &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d9a400;"></span> Sedang &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#c62828;"></span> Sering ('+maks+'x)'+(disembunyikan>0?(' · <i>'+disembunyikan+' disembunyikan karena tampil minggu ini</i>'):'');
   if(!siswa.length){ box.innerHTML='<div class="opsi">Belum ada data siswa.</div>'; return; }
-  if(acuan && !siswa.some(s=>s.ukuran===acuan)){ box.innerHTML='<div class="opsi">Tidak ada siswa ukuran '+esc(acuan)+' di data.</div>'; return; }
-  if(!list.length){ box.innerHTML='<div class="opsi">Tidak ada kandidat (semua ukuran '+esc(acuan||'-')+' sedang tampil minggu ini). Coba minggu lain atau kosongkan slot.</div>'; return; }
-  box.innerHTML = list.map(s=>{
-    const w = warnaFrekuensi(freq[s.id]||0, min, maks);
-    return '<div class="opsi '+w+'"><span><span class="dot '+w+'"></span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+' <span class="cnt">'+(freq[s.id]||0)+'x</span>'+(s.id===curId?' ★':'')+'</span><button onclick="simpanGanti('+s.id+')">Pilih</button></div>';
-  }).join('');
+  let html = '<div class="tbl-judul">Tabel 1 — Ukuran sama'+(acuan?(' ('+esc(acuan)+')'):'')+' ('+listSama.length+')</div>';
+  html += listSama.length
+    ? listSama.map(s=>barisOpsi(s, freq, min, maks, curId, false)).join('')
+    : '<div class="opsi">Tidak ada kandidat ukuran sama yang bebas minggu ini. Coba minggu lain atau kosongkan slot.</div>';
+  if(acuan){
+    html += '<div class="tbl-judul beda">Tabel 2 — Beda ukuran ('+listBeda.length+')</div><div class="tbl-note">Pilih di sini berarti minggu ini jadi <b>line up khusus</b> (bebas ukuran).</div>';
+    html += listBeda.length
+      ? listBeda.map(s=>barisOpsi(s, freq, min, maks, curId, true)).join('')
+      : '<div class="opsi">Tidak ada kandidat beda ukuran yang bebas minggu ini.</div>';
+  }
+  box.innerHTML = html;
 }
-function simpanGanti(idBaru){
+function simpanGanti(idBaru, beda){
   if(!targetGanti) return;
   const arr = getArrRef(targetGanti.ctx);
   if(!arr) return;
   const acuan = ukuranAcuan(targetGanti.ctx, targetGanti.slot);
   const s = siswa.find(x=>x.id===idBaru);
   if(!s){ alert('Siswa tidak ditemukan.'); return; }
-  if(acuan && s.ukuran!==acuan){ alert('Pengganti wajib ukuran sama ('+acuan+'). '+s.nama+' berukuran '+s.ukuran+'.'); return; }
+  if(beda && acuan && s.ukuran!==acuan){
+    if(!confirm(s.nama+' berukuran '+s.ukuran+' (slot ini '+acuan+'). Lanjut? Minggu ini akan ditandai LINE UP KHUSUS.')) return;
+  }
   arr[targetGanti.slot]=s;
   const m = muatManual(); m[slotKey(targetGanti.ctx,targetGanti.slot)]=s.id; simpanManual(m);
   tutupGanti(); tampilkanJadwal(bulanPlanGlobal); tandaiTersimpan('Edit tersimpan · ');
@@ -1393,8 +1423,7 @@ function terapkanManual(bulanPlan){
         if(v===0||v===null){ arr[slot]=null; continue; }
         const s = mapSiswa[v];
         if(!s){ delete m[k]; continue; }
-        const acuan = arr[slot] ? arr[slot].ukuran : ukuranBaris(arr, slot<3?1:(slot<6?2:3));
-        if(acuan && acuan!=='Campur' && s.ukuran!==acuan){ continue; }
+        // Edit manual = line up khusus: bebas ukuran, tampil persis, tetap dihitung rekap.
         arr[slot]=s;
       }
     });
@@ -1412,9 +1441,57 @@ function terapkanManual(bulanPlan){
   simpanManual(m);
 }
 
+// ===== RIWAYAT TERAKHIR (pulih otomatis saat dibuka) =====
+function simpanRiwayat(){
+  try{
+    if(!bulanPlanGlobal || !bulanPlanGlobal.length) return;
+    const ids = (arr) => (arr||[]).map(s => s ? s.id : 0);
+    const plan = bulanPlanGlobal.map(b => {
+      if(b.skip) return {bln:b.bln, thn:b.thn, skip:true};
+      return {bln:b.bln, thn:b.thn, skip:false,
+        t:[b.t1?b.t1.getTime():0, b.t2?b.t2.getTime():0, b.t3?b.t3.getTime():0, b.t4?b.t4.getTime():0, b.t5?b.t5.getTime():0],
+        w:{1:ids(b.w1), 2:ids(b.w2), 3:ids(b.w3), 4:ids(b.w4), 5:(b.w5?ids(b.w5):null)},
+        k:[b.khusus1||false, b.khusus2||false, b.khusus3||false, b.khusus4||false, b.khusus5||false],
+        e:(b.ekstra||[]).map(x=>({t:x.tanggal.getTime(), w:ids(x.w)}))};
+    });
+    localStorage.setItem(RIWAYAT_KEY, JSON.stringify({v:1,
+      bulan:document.getElementById('bulan').value,
+      tahun:document.getElementById('tahun').value,
+      jml:document.getElementById('jmlBulan').value, plan}));
+  }catch(e){}
+}
+function pulihkanRiwayat(){
+  try{
+    const raw = localStorage.getItem(RIWAYAT_KEY);
+    if(!raw || !siswa.length) return;
+    const r = JSON.parse(raw);
+    if(!r || r.v!==1 || !r.plan || !r.plan.length) return;
+    const map = {}; siswa.forEach(s=>map[s.id]=s);
+    const get = (id) => map[id] || null;
+    document.getElementById('bulan').value = r.bulan;
+    document.getElementById('tahun').value = r.tahun;
+    document.getElementById('jmlBulan').value = r.jml;
+    const teks = document.getElementById('jmlBulanTeks'); if(teks) teks.textContent = r.jml;
+    const D = (x) => x ? new Date(x) : null;
+    const plan = r.plan.map(p => {
+      if(p.skip) return {bln:p.bln, thn:p.thn, skip:true};
+      return {bln:p.bln, thn:p.thn,
+        t1:D(p.t[0]), t2:D(p.t[1]), t3:D(p.t[2]), t4:D(p.t[3]), t5:D(p.t[4]),
+        w1:(p.w['1']||[]).map(get), w2:(p.w['2']||[]).map(get),
+        w3:(p.w['3']||[]).map(get), w4:(p.w['4']||[]).map(get),
+        w5:(p.w['5']?p.w['5'].map(get):null),
+        khusus1:p.k[0], khusus2:p.k[1], khusus3:p.k[2], khusus4:p.k[3], khusus5:p.k[4],
+        ekstra:(p.e||[]).map(x=>({tanggal:new Date(x.t), w:(x.w||[]).map(get)}))};
+    });
+    terapkanManual(plan);
+    tampilkanJadwal(plan);
+  }catch(e){ console.error('Gagal memulihkan riwayat', e); }
+}
+
 muatData();
 render();
 initPin();
+pulihkanRiwayat();
 document.getElementById('jmlBulan').addEventListener('change', function(){
   const teks = document.getElementById('jmlBulanTeks');
   if(teks) teks.textContent = this.value;
