@@ -117,20 +117,29 @@
   #modalGanti .mbox{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow:auto;}
   #modalGanti .mbox h3{margin:0 0 4px;color:var(--hijau-tua);font-size:16px;}
   #daftarGanti{max-height:260px;overflow:auto;border:1px solid var(--garis);border-radius:8px;margin-top:10px;}
-  #daftarGanti .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;}
+  #daftarGanti .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;border-left:5px solid transparent;}
   #daftarGanti .opsi:last-child{border-bottom:none;}
   #daftarGanti .opsi button{margin-top:0;padding:4px 12px;font-size:12px;}
+  #daftarGanti .opsi.hijau{border-left-color:#2e9e5b;background:#f0faf4;}
+  #daftarGanti .opsi.kuning{border-left-color:#d9a400;background:#fffdf0;}
+  #daftarGanti .opsi.merah{border-left-color:#c62828;background:#fdf1f1;}
+  #daftarGanti .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:baseline;}
+  #daftarGanti .dot.hijau{background:#2e9e5b;} #daftarGanti .dot.kuning{background:#d9a400;} #daftarGanti .dot.merah{background:#c62828;}
+  #daftarGanti .cnt{font-size:11px;color:var(--abu);font-weight:700;}
+  #legendFrekuensi{font-size:12px;color:var(--abu);margin-top:8px;line-height:1.6;}
 
 @media print{
     #pinGate,#modalGanti{display:none !important;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page{size:A4 portrait;margin:8mm;}
-    header,.grid,#exportRow,.linklike{display:none !important;}
+    header,.grid,#exportRow,.linklike,.no-print{display:none !important;}
     body{background:#fff;}
     .wrap{max-width:100%;padding:0;}
-    .card{border:none;padding:0;}
+    .card{border:none;padding:0;margin-top:0 !important;}
     .monthcard{border:1px solid #aaa;padding:8px 10px;margin-top:0;break-inside:avoid;}
+    .monthcard:first-child{margin-top:0;}
     .monthcard + .monthcard, .rekap{break-before:page;}
+    .chip.edit,.tanda-khusus,.bintang,.lg.seragam{display:none !important;}
     .formasi-inner{padding:6px;}
     .f-grid{gap:3px;}
     .f-cell{padding:3px 2px;min-height:24px;}
@@ -159,8 +168,9 @@
   <div class="mbox">
     <h3>Ganti pemain</h3>
     <div class="info" id="infoGanti"></div>
-    <label for="cariGanti">Cari nama pengganti (wajib ukuran sama)</label>
+    <label for="cariGanti">Cari nama pengganti (wajib ukuran sama, hanya yang belum tampil minggu ini)</label>
     <input id="cariGanti" type="text" placeholder="Ketik nama..." oninput="renderDaftarGanti()">
+    <div id="legendFrekuensi"></div>
     <div id="daftarGanti"></div>
     <div class="btnrow" style="margin-top:12px;">
       <button class="secondary" onclick="tutupGanti()">Batal</button>
@@ -245,12 +255,12 @@
         • Ada rekap jumlah tampil (termasuk penampilan line up khusus).
       </div>
       <button class="full" onclick="aturJadwal()">Atur jadwal</button>
-      <div id="pesanError"></div>
+      <div id="pesanError" class="no-print"></div>
     </div>
 
   </div>
 
-  <div class="card" style="margin-top:24px;">
+  <div class="card no-print" style="margin-top:24px;">
     <h2>Line up khusus (penampilan yang sudah ditetapkan)</h2>
     <div class="info">Line up khusus diisi lewat <b>Excel</b>: unduh template, isi sheet "Line Up Khusus" (Bulan, Tahun, Hari tampil, lalu 9 posisi nama siswa), kemudian upload. <b>Hari tampil</b> bisa berupa <b>"Senin ke-1 s.d. ke-5"</b> (menggantikan jadwal Senin) <b>atau tanggal bebas</b> (mis. "2026-08-15", "15 Agustus 2026", "Sabtu 15 Agustus 2026") untuk <b>penampilan ekstra</b> di hari lain. Bisa dibuat <b>banyak</b> line up khusus (tanpa batas): duplikasi sheet "Line Up Khusus" lalu beri nama lain, mis. "Line Up Khusus 2" — semua sheet yang namanya mengandung "Line Up" diimport, tiap sheet = 1 line up. Hasilnya menggantikan jadwal acak dan diberi tanda <b>KHUSUS</b> (ekstra diberi tanda <b>★ EKSTRA</b>). 9 posisi yang <b>dikosongkan semua</b> = <b>LIBUR</b> (minggu/tanggal dilewati). Penampilan khusus <b>tetap dihitung</b> di rekap jumlah tampil agar adil; antrian rotasi siswa lain tidak terganggu (minggu yang di-override tidak menarik siswa).</div>
   </div>
@@ -261,9 +271,9 @@
       <button class="secondary" onclick="window.print()">Export ke PDF (portrait, 1 bulan = 1 halaman)</button>
       <button class="secondary" onclick="resetSemuaManual()">Reset semua edit manual</button>
     </div>
-    <div class="info">Tips: <b>klik nama di formasi</b> untuk mengganti pemain bila ada perubahan sedikit — tidak perlu upload Excel ulang. Pengganti disaring <b>ukuran sama</b> saja.</div>
+    <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain bila ada perubahan sedikit — tidak perlu upload Excel ulang. Pengganti disaring <b>ukuran sama</b> saja.</div>
     <div id="hasilJadwal"></div>
-    <div id="kosongJadwal" class="kosong">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
+    <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
   </div>
 </div>
 
@@ -1136,8 +1146,10 @@ function ukuranBaris(m, baris){
 
 function weekHtml(judul, tanggal, seragam, m, khusus, tanpaSeragam, idCtx){
   let tanda = '';
-  if(khusus === 'libur') tanda = ` <span class="chip x" style="background:#e5e5e5;color:#666;">Libur</span>`;
-  else if(khusus && khusus !== 'ekstra') tanda = ` <span class="chip s" style="background:#c9a13b;">★ LINE UP KHUSUS</span>`;
+  if(khusus === 'libur') tanda = ` <span class="tanda-khusus"><span class="chip x" style="background:#e5e5e5;color:#666;">Libur</span></span>`;
+  else if(khusus && khusus !== 'ekstra') tanda = ` <span class="tanda-khusus"><span class="chip s" style="background:#c9a13b;">★ LINE UP KHUSUS</span></span>`;
+  else if(khusus === 'ekstra') tanda = ` <span class="tanda-khusus"><span class="chip s" style="background:#c9a13b;">★ EKSTRA</span></span>`;
+  const judulCetak = String(judul).replace('★', '<span class="bintang">★</span>');
   const u1 = ukuranBaris(m, 1);
   const u2 = ukuranBaris(m, 2);
   const u3 = ukuranBaris(m, 3);
@@ -1146,7 +1158,7 @@ function weekHtml(judul, tanggal, seragam, m, khusus, tanpaSeragam, idCtx){
   const seragamClass = seragam === 'PASKIBRA' ? 'seragam-paskibra' : 'seragam-putih';
   const lgSeragam = tanpaSeragam ? '' : ` <span class="lg seragam ${seragamClass}">Seragam: ${esc(seragam)}</span>`;
   return `<div class="weekcard">
-    <div class="wjudul"><strong>${judul}</strong> — <span class="tgl">${formatTanggal(tanggal)}</span>${tanda}</div>
+    <div class="wjudul"><strong>${judulCetak}</strong> — <span class="tgl">${formatTanggal(tanggal)}</span>${tanda}</div>
     <div class="legend">
       <span class="lg">${chip(u1,'1')} Baris 1</span>
       <span class="lg">${chip(u2,'2')} Baris 2</span>
@@ -1287,22 +1299,50 @@ function bukaGanti(ctx, slot){
   renderDaftarGanti();
 }
 function tutupGanti(){ document.getElementById('modalGanti').style.display='none'; targetGanti=null; }
+// Peta frekuensi tampil live (termasuk edit manual) untuk pewarnaan hijau/kuning/merah.
+function petaFrekuensi(){
+  const map = {};
+  siswa.forEach(s=>map[s.id]=0);
+  try{
+    const rekap = hitungRekap(bulanPlanGlobal);
+    const byName = {};
+    rekap.forEach(r=>{ byName[r.nama+'|'+r.ukuran+'|'+r.jk]=r.jumlah; });
+    siswa.forEach(s=>{ map[s.id]=byName[s.nama+'|'+s.ukuran+'|'+s.jk]||0; });
+  }catch(e){}
+  const vals = Object.values(map);
+  const min = vals.length?Math.min.apply(null,vals):0;
+  const maks = vals.length?Math.max.apply(null,vals):0;
+  return {map, min, maks};
+}
+function warnaFrekuensi(jumlah, min, maks){
+  if(maks===min) return 'hijau';
+  if(jumlah===min) return 'hijau';
+  if(jumlah===maks) return 'merah';
+  return 'kuning';
+}
 function renderDaftarGanti(){
   if(!targetGanti) return;
   const q = (document.getElementById('cariGanti').value||'').toLowerCase();
   const acuan = ukuranAcuan(targetGanti.ctx, targetGanti.slot);
   const arr = getArrRef(targetGanti.ctx);
-  const dipakai = new Set();
-  bulanPlanGlobal.forEach(b=>{ if(b.skip) return; ['w1','w2','w3','w4','w5'].forEach(k=>{ (b[k]||[]).forEach(s=>{ if(s) dipakai.add(s.id); }); }); (b.ekstra||[]).forEach(e=>e.w.forEach(s=>{ if(s) dipakai.add(s.id); })); });
-  let list = siswa.filter(s => !acuan || s.ukuran===acuan);
+  const curId = arr && arr[targetGanti.slot] ? arr[targetGanti.slot].id : null;
+  // Filter 1 (pilihan user): sembunyikan yang sudah tampil di minggu yang sama (9 slot ctx ini).
+  const tampilMingguIni = new Set((arr||[]).filter(Boolean).map(s=>s.id));
+  const {map:freq, min, maks} = petaFrekuensi();
+  let list = siswa.filter(s => (!acuan || s.ukuran===acuan) && (s.id===curId || !tampilMingguIni.has(s.id)));
+  const disembunyikan = (arr||[]).filter(Boolean).length - (curId&&tampilMingguIni.has(curId)?1:0);
   if(q) list = list.filter(s => s.nama.toLowerCase().includes(q));
-  list = list.slice().sort((a,b)=>a.nama.localeCompare(b.nama,'id'));
+  list = list.slice().sort((a,b)=>(freq[a.id]-freq[b.id])||a.nama.localeCompare(b.nama,'id'));
   const box = document.getElementById('daftarGanti');
+  const legend = document.getElementById('legendFrekuensi');
+  if(legend) legend.innerHTML = '<span class="dot hijau" style="width:10px;height:10px;border-radius:50%;display:inline-block;background:#2e9e5b;"></span> Jarang ('+min+'x) &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d9a400;"></span> Sedang &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#c62828;"></span> Sering ('+maks+'x)'+(disembunyikan>0?(' · <i>'+disembunyikan+' disembunyikan karena tampil minggu ini</i>'):'');
   if(!siswa.length){ box.innerHTML='<div class="opsi">Belum ada data siswa.</div>'; return; }
   if(acuan && !siswa.some(s=>s.ukuran===acuan)){ box.innerHTML='<div class="opsi">Tidak ada siswa ukuran '+esc(acuan)+' di data.</div>'; return; }
-  if(!list.length){ box.innerHTML='<div class="opsi">Tidak ketemu. Coba kata kunci lain.</div>'; return; }
-  const curId = arr && arr[targetGanti.slot] ? arr[targetGanti.slot].id : null;
-  box.innerHTML = list.map(s=>'<div class="opsi"><span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+(s.id===curId?' ★':'')+'</span><button onclick="simpanGanti('+s.id+')">Pilih</button></div>').join('');
+  if(!list.length){ box.innerHTML='<div class="opsi">Tidak ada kandidat (semua ukuran '+esc(acuan||'-')+' sedang tampil minggu ini). Coba minggu lain atau kosongkan slot.</div>'; return; }
+  box.innerHTML = list.map(s=>{
+    const w = warnaFrekuensi(freq[s.id]||0, min, maks);
+    return '<div class="opsi '+w+'"><span><span class="dot '+w+'"></span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+' <span class="cnt">'+(freq[s.id]||0)+'x</span>'+(s.id===curId?' ★':'')+'</span><button onclick="simpanGanti('+s.id+')">Pilih</button></div>';
+  }).join('');
 }
 function simpanGanti(idBaru){
   if(!targetGanti) return;
