@@ -1335,21 +1335,20 @@ function warnaFrekuensi(jumlah, min, maks){
   if(jumlah===maks) return 'merah';
   return 'kuning';
 }
-function barisOpsi(s, freq, min, maks, curId, beda){
+function barisOpsi(s, freq, min, maks, beda){
   const w = warnaFrekuensi(freq[s.id]||0, min, maks);
-  return '<div class="opsi '+w+'"><span><span class="dot '+w+'"></span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+' <span class="cnt">'+(freq[s.id]||0)+'x</span>'+(s.id===curId?' ★':'')+'</span><button onclick="simpanGanti('+s.id+','+(beda?'true':'false')+')">Pilih</button></div>';
+  return '<div class="opsi '+w+'"><span><span class="dot '+w+'"></span>'+esc(s.nama)+' <span class="badge">'+esc(s.ukuran)+'</span> '+esc(s.jk)+' <span class="cnt">'+(freq[s.id]||0)+'x</span></span><button onclick="simpanGanti('+s.id+','+(beda?'true':'false')+')">Pilih</button></div>';
 }
 function renderDaftarGanti(){
   if(!targetGanti) return;
   const q = (document.getElementById('cariGanti').value||'').toLowerCase();
   const acuan = ukuranAcuan(targetGanti.ctx, targetGanti.slot);
   const arr = getArrRef(targetGanti.ctx);
-  const curId = arr && arr[targetGanti.slot] ? arr[targetGanti.slot].id : null;
-  // Sembunyikan yang sudah tampil di minggu yang sama (9 slot ctx ini) — berlaku di kedua tabel.
+  // Penghuni slot ini ikut disembunyikan (ia bagian dari 9 slot minggu ini).
   const tampilMingguIni = new Set((arr||[]).filter(Boolean).map(s=>s.id));
   const {map:freq, min, maks} = petaFrekuensi();
-  const dasar = siswa.filter(s => s.id===curId || !tampilMingguIni.has(s.id));
-  const disembunyikan = (arr||[]).filter(Boolean).length - (curId&&tampilMingguIni.has(curId)?1:0);
+  const dasar = siswa.filter(s => !tampilMingguIni.has(s.id));
+  const disembunyikan = (arr||[]).filter(Boolean).length;
   const saring = (l) => {
     let r = q ? l.filter(s => s.nama.toLowerCase().includes(q)) : l.slice();
     return r.sort((a,b)=>(freq[a.id]-freq[b.id])||a.nama.localeCompare(b.nama,'id'));
@@ -1362,12 +1361,12 @@ function renderDaftarGanti(){
   if(!siswa.length){ box.innerHTML='<div class="opsi">Belum ada data siswa.</div>'; return; }
   let html = '<div class="tbl-judul">Tabel 1 — Ukuran sama'+(acuan?(' ('+esc(acuan)+')'):'')+' ('+listSama.length+')</div>';
   html += listSama.length
-    ? listSama.map(s=>barisOpsi(s, freq, min, maks, curId, false)).join('')
+    ? listSama.map(s=>barisOpsi(s, freq, min, maks, false)).join('')
     : '<div class="opsi">Tidak ada kandidat ukuran sama yang bebas minggu ini. Coba minggu lain atau kosongkan slot.</div>';
   if(acuan){
     html += '<div class="tbl-judul beda">Tabel 2 — Beda ukuran ('+listBeda.length+')</div><div class="tbl-note">Pilih di sini berarti minggu ini jadi <b>line up khusus</b> (bebas ukuran).</div>';
     html += listBeda.length
-      ? listBeda.map(s=>barisOpsi(s, freq, min, maks, curId, true)).join('')
+      ? listBeda.map(s=>barisOpsi(s, freq, min, maks, true)).join('')
       : '<div class="opsi">Tidak ada kandidat beda ukuran yang bebas minggu ini.</div>';
   }
   box.innerHTML = html;
