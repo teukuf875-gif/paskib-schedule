@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Paskibra Schedule Generator - SMP 7</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
@@ -27,6 +28,7 @@
   .sidebar{width:228px;flex-shrink:0;background:#F1ECE2;border-right:1px solid var(--garis);padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto;}
   .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
   .brand .lambang{width:42px;height:42px;border-radius:50%;background:#F7F3EC;box-shadow:var(--clay-shadow);display:flex;align-items:center;justify-content:center;font-weight:800;color:#3A3A38;font-size:18px;flex-shrink:0;}
+  .logo-paskib{width:64px;height:auto;border-radius:12px;box-shadow:var(--clay-shadow);flex-shrink:0;background:#fff;}
   .brand b{font-size:15px;} .brand small{display:block;font-size:11px;color:var(--abu);font-weight:400;}
   .nav{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
   .nav button{margin:0;text-align:left;background:transparent;color:#5b574f;border:none;padding:10px 12px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:center;}
@@ -165,17 +167,19 @@
   .tbl-note{font-size:11px;color:var(--abu);margin-bottom:2px;}
 
 @media print{
-    #pinGate,#modalGanti,.sidebar,.topbar,.no-print{display:none !important;}
+    #pinGate,#modalGanti,.sidebar,.topbar,.no-print,.linklike{display:none !important;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page{size:A4 portrait;margin:8mm;}
-    #exportRow,.linklike{display:none !important;}
     body{background:#fff;}
     .app{display:block;}
     .sidebar{display:none !important;}
     .main{display:block;}
     .wrap{max-width:100%;padding:0;}
-    .view{display:block !important;}
-    .view.no-print-view{display:none !important;}
+    .view{display:none !important;}
+    #view-hasil{display:block !important;}
+    #view-hasil .atur-header{display:none !important;}
+    #view-hasil .hasil-lineup{border:none !important;box-shadow:none !important;margin:0 !important;padding:0 !important;}
+    #view-hasil .hasil-lineup h2,#view-hasil .hasil-lineup .info,#kosongJadwal{display:none !important;}
     .card{border:1px solid #ddd;padding:8px;margin-top:8px !important;box-shadow:none;border-radius:8px;}
     .monthcard{border:1px solid #aaa;padding:8px 10px;margin-top:0;break-inside:avoid;box-shadow:none;}
     .monthcard:first-child{margin-top:0;}
@@ -215,7 +219,6 @@
     <div id="daftarGanti"></div>
     <div class="btnrow" style="margin-top:12px;">
       <button class="secondary" onclick="tutupGanti()">Batal</button>
-      <button class="secondary" onclick="kosongkanSlot()">Kosongkan slot</button>
       <button class="secondary" onclick="resetSatuSlot()">Kembalikan asli</button>
     </div>
   </div>
@@ -223,12 +226,11 @@
 
 <div class="app">
 <aside class="sidebar no-print" id="sidebar">
-  <div class="brand"><div class="lambang">P</div><div><b>Paskibra</b><small>SMP 7 · Schedule</small></div></div>
+  <div class="brand"><img class="logo-paskib" src="data:image/jpeg;base64,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" alt="Logo Paskib"><div><b>Paskibra</b><small>SMP 7 · Schedule</small></div></div>
   <div class="nav" id="mainNav">
     <button data-view="overview" class="aktif" onclick="showView('overview')">◎ Overview</button>
     <button data-view="data" onclick="showView('data')">▦ Data siswa</button>
-    <button data-view="atur" onclick="showView('atur')">⚙ Atur jadwal</button>
-    <button data-view="hasil" onclick="showView('hasil')">▤ Hasil</button>
+    <button data-view="hasil" onclick="showView('hasil')">▤ Hasil & Atur</button>
     <button data-view="rekap" onclick="showView('rekap')">≡ Rekap</button>
     <button data-view="ban" onclick="showView('ban')">⊘ Ban per bulan</button>
     <button data-view="info" onclick="showView('info')">ⓘ Info</button>
@@ -241,7 +243,7 @@
 <header class="topbar no-print">
   <button class="iconbtn hamb" onclick="document.getElementById('sidebar').classList.toggle('buka')">☰</button>
   <input class="search" id="searchTop" type="text" placeholder="Search workspace... (cari nama siswa)" oninput="filterDariTopbar(this.value)">
-  <button class="btn-create" onclick="showView('atur');aturJadwal()">+ Atur jadwal</button>
+  <button class="btn-create" onclick="showView('hasil');setTimeout(function(){window.scrollTo({top:0})},50)">+ Atur jadwal</button>
   <button class="iconbtn" title="Export PDF" onclick="window.print()">⎙</button>
   <button class="iconbtn" title="Keluar (kunci PIN)" onclick="try{sessionStorage.removeItem('paskib_ok')}catch(e){};location.reload()">↪</button>
 </header>
@@ -260,26 +262,9 @@
     </div>
     <div class="grid">
       <div class="card">
-        <h2>Atur cepat</h2>
-        <div class="row2">
-          <div><label for="bulan">Bulan awal</label>
-          <select id="bulan">
-            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
-            <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
-            <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
-            <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-          </select></div>
-          <div><label for="tahun">Tahun</label><input id="tahun" type="number" value="2026" min="2020" max="2100"></div>
-        </div>
-        <div><label for="jmlBulan">Jumlah bulan</label>
-        <select id="jmlBulan">
-          <option value="2">2 bulan</option><option value="3">3 bulan</option><option value="4">4 bulan</option>
-          <option value="5">5 bulan</option><option value="6" selected>6 bulan</option><option value="7">7 bulan</option>
-          <option value="8">8 bulan</option><option value="9">9 bulan</option><option value="10">10 bulan</option>
-          <option value="11">11 bulan</option><option value="12">12 bulan</option>
-        </select></div>
-        <button class="full" onclick="aturJadwal()">Atur jadwal</button>
-        <div id="pesanError" class="no-print"></div>
+        <h2>Mulai cepat</h2>
+        <div class="info">Atur bulan & generate jadwal di halaman <b>Hasil</b>. Data siswa dikelola di halaman <b>Data</b>.</div>
+        <div class="btnrow" style="margin-top:12px;"><button class="secondary" onclick="showView('hasil')">Atur jadwal</button><button class="secondary" onclick="showView('data')">Kelola siswa</button></div>
       </div>
       <div class="card">
         <h2>Stok baju paskibra</h2>
@@ -309,11 +294,30 @@
     </div>
   </section>
 
-  <!-- ATUR -->
-  <section class="view" id="view-atur">
-    <div class="card">
-      <h2>Atur rencana jadwal</h2>
-      <div class="info">Akan dibuat jadwal <b><span id="jmlBulanTeks">6</span> bulan berurutan</b>. Setiap bulan: <b>4–5 Senin</b>. Seragam: PASKIBRA (1 & 3), PUTIH (2,4,5). Bulan & tahun diambil dari Overview (sama).</div>
+  <!-- HASIL + ATUR (digabung: header = atur jadwal) -->
+  <section class="view" id="view-hasil">
+    <div class="card atur-header no-print">
+      <h2>Atur jadwal</h2>
+      <div class="info">Jadwal <b><span id="jmlBulanTeks">6</span> bulan berurutan</b>, tiap bulan 4–5 Senin. Seragam: PASKIBRA (1 & 3), PUTIH (2,4,5).</div>
+      <div class="row2">
+        <div><label for="bulan">Bulan awal</label>
+        <select id="bulan">
+          <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+          <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+          <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+          <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+        </select></div>
+        <div><label for="tahun">Tahun</label><input id="tahun" type="number" value="2026" min="2020" max="2100"></div>
+      </div>
+      <div><label for="jmlBulan">Jumlah bulan</label>
+      <select id="jmlBulan">
+        <option value="2">2 bulan</option><option value="3">3 bulan</option><option value="4">4 bulan</option>
+        <option value="5">5 bulan</option><option value="6" selected>6 bulan</option><option value="7">7 bulan</option>
+        <option value="8">8 bulan</option><option value="9">9 bulan</option><option value="10">10 bulan</option>
+        <option value="11">11 bulan</option><option value="12">12 bulan</option>
+      </select></div>
+      <button class="full" onclick="aturJadwal()">Atur jadwal</button>
+      <div id="pesanError" class="no-print"></div>
       <details style="margin-top:10px;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">Detail logika 1-ukuran / 2-ukuran & gender</summary>
 <div class="info">
         • <b>Ukuran</b>: M2, M1, L, S (terbesar → terkecil).<br>
@@ -322,19 +326,10 @@
         • <b>M1 tidak pernah di baris depan.</b> Satu baris = satu ukuran.<br>
         • Gender: 2LK+1PR → PR tengah; 1LK+2PR → LK tengah. Rekap termasuk khusus/ekstra.
       </div></details>
-      <button class="full" onclick="aturJadwal()">Atur jadwal</button>
     </div>
-  </section>
-
-  <!-- HASIL -->
-  <section class="view" id="view-hasil">
-    <div class="card">
+    <div class="card hasil-lineup">
       <h2>Hasil rencana</h2>
-      <div class="btnrow" id="exportRow" style="display:none;">
-        <button class="secondary" onclick="window.print()">Export ke PDF (portrait, 1 bulan = 1 halaman)</button>
-        <button class="secondary" onclick="resetSemuaManual()">Reset semua edit manual</button>
-      </div>
-      <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain. Tabel 1 = ukuran sama, Tabel 2 = beda (jadi KHUSUS).</div>
+      <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain. Tabel 1 = ukuran sama, Tabel 2 = beda (jadi KHUSUS). Export via ikon <b>⎙</b> di bar atas — yang tercetak hanya line up formasi.</div>
       <div id="hasilJadwal"></div>
       <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
     </div>
@@ -843,14 +838,14 @@ function render(){
 }
 // ===== NAVIGASI SIDEBAR CLAY (tanpa ubah logika jadwal) =====
 let rekapCache = [];
-function showView(nama){
+function showView(nama, opts){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('aktif'));
   const el = document.getElementById('view-'+nama);
   if(el) el.classList.add('aktif');
   document.querySelectorAll('#mainNav button').forEach(b=>b.classList.toggle('aktif', b.dataset.view===nama));
   try{ if(location.hash !== '#'+nama) history.replaceState(null,'','#'+nama); }catch(e){}
   try{ document.getElementById('sidebar').classList.remove('buka'); }catch(e){}
-  try{ window.scrollTo({top:0}); }catch(e){}
+  if(!opts || opts.scroll !== false){ try{ window.scrollTo({top:0}); }catch(e){} }
 }
 function filterDariTopbar(v){
   const c = document.getElementById('cariSiswa'); if(c){ c.value = v; }
@@ -1091,7 +1086,7 @@ function susunBulan(ambil, bulanKe, skips, jumlahU, adaW5){
   return hasil;
 }
 
-function aturJadwal(){
+function aturJadwal(opts){
   const mulaiBulan = parseInt(document.getElementById('bulan').value, 10);
   const mulaiTahun = parseInt(document.getElementById('tahun').value, 10);
   const jmlBulan = parseInt(document.getElementById('jmlBulan').value, 10) || 6;
@@ -1184,7 +1179,7 @@ function aturJadwal(){
   }
 
   terapkanManual(bulanPlan);
-  tampilkanJadwal(bulanPlan);
+  tampilkanJadwal(bulanPlan, opts);
 }
 
 // ===== REKAP JUMLAH TAMPIL =====
@@ -1311,7 +1306,6 @@ function tampilkanJadwal(bulanPlan, opts){
   const hasil = document.getElementById('hasilJadwal');
   const kosong = document.getElementById('kosongJadwal');
   kosong.style.display='none';
-  document.getElementById('exportRow').style.display='flex';
   hasil.innerHTML='';
 
   const rekap = hitungRekap(bulanPlan);
@@ -1359,7 +1353,9 @@ function tampilkanJadwal(bulanPlan, opts){
   if(qOld){ try{ document.getElementById('cariRekap').value = qOld; renderRekapFilter(); }catch(e){} }
   try{ updateOverviewStats(); }catch(e){}
   const nav = !opts || opts.nav !== false;
-  if(nav){ try{ showView('hasil'); }catch(e){} }
+  const keep = !!(opts && opts.keepScroll);
+  if(nav){ try{ showView('hasil', {scroll: !keep}); }catch(e){} }
+  if(keep){ try{ const y = opts.y != null ? opts.y : window.scrollY; window.scrollTo(0, y); }catch(e){} }
   try{ simpanRiwayat(); }catch(e){}
 }function toggleJadwalSiswa(btn, jadwal){
   const tr = btn.closest('tr').nextElementSibling;
@@ -1506,25 +1502,14 @@ function simpanGanti(idBaru, beda){
   }
   arr[targetGanti.slot]=s;
   const m = muatManual(); m[slotKey(targetGanti.ctx,targetGanti.slot)]=s.id; simpanManual(m);
-  tutupGanti(); tampilkanJadwal(bulanPlanGlobal); tandaiTersimpan('Edit tersimpan · ');
-}
-function kosongkanSlot(){
-  if(!targetGanti) return;
-  const arr = getArrRef(targetGanti.ctx);
-  if(!arr) return;
-  arr[targetGanti.slot]=null;
-  const m = muatManual(); m[slotKey(targetGanti.ctx,targetGanti.slot)]=0; simpanManual(m);
-  tutupGanti(); tampilkanJadwal(bulanPlanGlobal); tandaiTersimpan('Edit tersimpan · ');
+  const y = window.scrollY;
+  tutupGanti(); tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y}); tandaiTersimpan('Edit tersimpan · ');
 }
 function resetSatuSlot(){
   if(!targetGanti) return;
   const m = muatManual(); delete m[slotKey(targetGanti.ctx,targetGanti.slot)]; simpanManual(m);
-  tutupGanti(); aturJadwal();
-}
-function resetSemuaManual(){
-  if(!confirm('Hapus semua edit manual dan kembalikan ke hasil generate?')) return;
-  try{ localStorage.removeItem(MANUAL_KEY); }catch(e){}
-  aturJadwal();
+  const y = window.scrollY;
+  tutupGanti(); aturJadwal({nav:false, keepScroll:true, y});
 }
 function terapkanManual(bulanPlan){
   const m = muatManual();
@@ -1618,7 +1603,8 @@ pulihkanRiwayat();
 sinkronBan();
 render();
 try{
-  const h = (location.hash||'').replace('#','');
+  let h = (location.hash||'').replace('#','');
+  if(h === 'atur') h = 'hasil';
   if(document.getElementById('view-'+h)) showView(h); else showView('overview');
 }catch(e){ try{ showView('overview'); }catch(_){} }
 document.getElementById('jmlBulan').addEventListener('change', function(){
