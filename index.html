@@ -120,6 +120,11 @@
   #daftarGanti .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;border-left:5px solid transparent;}
   #daftarGanti .opsi:last-child{border-bottom:none;}
   #daftarGanti .opsi button{margin-top:0;padding:4px 12px;font-size:12px;}
+  #daftarBan{max-height:300px;overflow:auto;border:1px solid var(--garis);border-radius:8px;margin-top:10px;}
+  #daftarBan .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;border-left:5px solid transparent;}
+  #daftarBan .opsi:last-child{border-bottom:none;}
+  #daftarBan .opsi.merah{border-left-color:#c62828;background:#fdf1f1;}
+  #daftarBan .opsi button{margin-top:0;padding:4px 12px;font-size:12px;}
   #daftarGanti .opsi.hijau{border-left-color:#2e9e5b;background:#f0faf4;}
   #daftarGanti .opsi.kuning{border-left-color:#d9a400;background:#fffdf0;}
   #daftarGanti .opsi.merah{border-left-color:#c62828;background:#fdf1f1;}
@@ -200,10 +205,10 @@
     <div class="card">
       <h2>Data siswa</h2>
 
-      <label for="importExcel">Import dari Excel (sheet: Siswa, Line Up Khusus, Tidak Tampil, Info)</label>
+      <label for="importExcel">Import dari Excel (sheet Siswa: Nama, Ukuran, JK)</label>
       <input id="importExcel" type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event)">
       <button class="linklike" onclick="unduhTemplate()">Unduh template Excel</button>
-      <div class="info">Data massal diinput lewat <b>Excel</b> (template di atas). Saat upload, data lama diganti total oleh isi file. <b>Edit kecil boleh langsung di web:</b> klik nama di jadwal hasil untuk mengganti pemain (wajib ukuran sama, otomatis tersimpan & ikut rekap). Sheet <b>Info</b> menjelaskan fungsi tiap kolom.</div>
+      <div class="info">Excel hanya untuk update massal <b>Nama/Ukuran/JK</b>. Data web (line up khusus, edit manual, ban) <b>dipertahankan</b> & dicocokkan via nama. Sheet lain bila ada di file lama akan diabaikan.</div>
 
       <h2 style="margin-top:24px;">Daftar siswa (<span id="jumlahSiswa">0</span>)</h2>
       <table>
@@ -264,8 +269,30 @@
   </div>
 
   <div class="card no-print" style="margin-top:24px;">
+    <h2>Ban per bulan (tidak tampil)</h2>
+    <div class="info">Pilih bulan + tahun, centang <b>Ban</b> pada siswa yang diskip, lalu klik <b>Atur jadwal</b> lagi. Ban tersimpan per bulan di browser ini (tidak perlu Excel).</div>
+    <div class="row2">
+      <div>
+        <label for="banBulan">Bulan ban</label>
+        <select id="banBulan" onchange="renderBan()">
+          <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+          <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+          <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+          <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+        </select>
+      </div>
+      <div>
+        <label for="banTahun">Tahun ban</label>
+        <input id="banTahun" type="number" value="2026" min="2020" max="2100" onchange="renderBan()">
+      </div>
+    </div>
+    <div id="daftarBan"></div>
+    <button class="secondary full" onclick="bukaSemuaBan()">Buka semua ban bulan ini</button>
+  </div>
+
+  <div class="card no-print" style="margin-top:24px;">
     <h2>Line up khusus (penampilan yang sudah ditetapkan)</h2>
-    <div class="info">Line up khusus diisi lewat <b>Excel</b>: unduh template, isi sheet "Line Up Khusus" (Bulan, Tahun, Hari tampil, lalu 9 posisi nama siswa), kemudian upload. <b>Hari tampil</b> bisa berupa <b>"Senin ke-1 s.d. ke-5"</b> (menggantikan jadwal Senin) <b>atau tanggal bebas</b> (mis. "2026-08-15", "15 Agustus 2026", "Sabtu 15 Agustus 2026") untuk <b>penampilan ekstra</b> di hari lain. Bisa dibuat <b>banyak</b> line up khusus (tanpa batas): duplikasi sheet "Line Up Khusus" lalu beri nama lain, mis. "Line Up Khusus 2" — semua sheet yang namanya mengandung "Line Up" diimport, tiap sheet = 1 line up. Hasilnya menggantikan jadwal acak dan diberi tanda <b>KHUSUS</b> (ekstra diberi tanda <b>★ EKSTRA</b>). 9 posisi yang <b>dikosongkan semua</b> = <b>LIBUR</b> (minggu/tanggal dilewati). Penampilan khusus <b>tetap dihitung</b> di rekap jumlah tampil agar adil; antrian rotasi siswa lain tidak terganggu (minggu yang di-override tidak menarik siswa).</div>
+    <div class="info">Line up khusus dibuat <b>langsung di web</b>: klik nama di jadwal hasil untuk mengganti pemain (Tabel 1 = ukuran sama, Tabel 2 = beda ukuran). Minggu yang diedit otomatis bertanda <b>KHUSUS</b> — bebas logika ukuran, tampil persis, <b>tetap dihitung</b> di rekap; rotasi siswa lain tidak terganggu. File Excel lama berisi sheet Line Up/Tidak Tampil tetap bisa diupload (sheet itu diabaikan, data web dipertahankan).</div>
   </div>
 
   <div class="card" style="margin-top:24px;">
@@ -368,42 +395,52 @@ function importExcel(event){
         if(jk !== 'LK' && jk !== 'PR') jk = 'LK';
         baru.push({nama, ukuran, jk});
       }
+      // Id lama dicatat via NAMA agar data web (khusus/ekstra/manual) bisa dipetakan ulang.
+      const namaLama = {};
+      siswa.forEach(s => { namaLama[s.id] = s.nama.toLowerCase(); });
       // Id yang baru dipakai: 1, 2, 3, ... mengikuti urutan file.
       siswa = baru.map((s, i) => ({id: i+1, ...s}));
       idCounter = siswa.length + 1;
+      const idBaru = {};
+      siswa.forEach(s => { idBaru[s.nama.toLowerCase()] = s.id; });
 
-      // Sheet 2: Line Up Khusus (opsional) — diproses SETELAH siswa diatur ulang
-      // supaya nama tetap bisa dicocokkan ke id siswa yang baru.
-      // Karena id siswa direset (1..N), semua line up khusus lama DIHAPUS dulu
-      // agar tidak menunjuk siswa yang salah; isi di-rebuild dari file Excel.
-      // SEMUA sheet yang namanya mengandung "Line Up"/"lineup" diimport (tiap
-      // sheet = 1 line up khusus), jadi bisa banyak line up tanpa batas.
-      let pesanLK = '';
-      try{ localStorage.removeItem(LK_KEY); }catch(e){ console.error(e); }
-      try{ localStorage.removeItem(EKSTRA_KEY); }catch(e){ console.error(e); }
-      try{ localStorage.removeItem(MANUAL_KEY); }catch(e){ console.error(e); }
+      // Excel = update massal Nama/Ukuran/JK saja. Sheet Line Up Khusus /
+      // Tidak Tampil (file lama) DIABAIKAN — khusus & ban dikelola via web.
+      const jmlAbaikan = sheetNama.filter(n => {
+        const l = n.toLowerCase();
+        return l.includes('line up') || l.includes('lineup') || l.includes('tidak tampil') || l.includes('blokir');
+      }).length;
+      // Petakan ulang id lama → id baru via NAMA agar data web tetap nempel orang yang benar.
+      // Nama yang tak ada di file baru → slotnya jadi kosong (khusus jadi LIBUR bila semua hilang).
+      const remapId = (id) => {
+        if(id == null || id === 0) return id;
+        const nm = namaLama[id];
+        if(!nm) return null;
+        return (idBaru[nm] != null) ? idBaru[nm] : null;
+      };
+      try{
+        const lk = muatSemuaLK();
+        Object.keys(lk).forEach(k => { lk[k] = (lk[k] || []).map(remapId); });
+        localStorage.setItem(LK_KEY, JSON.stringify(lk));
+      }catch(e){ console.error(e); }
+      try{
+        const ex = muatSemuaEkstra();
+        Object.keys(ex).forEach(k => { ex[k].forEach(e => { e.arr = (e.arr || []).map(remapId); }); });
+        localStorage.setItem(EKSTRA_KEY, JSON.stringify(ex));
+      }catch(e){ console.error(e); }
+      try{
+        const mn = muatManual();
+        Object.keys(mn).forEach(k => { mn[k] = remapId(mn[k]); });
+        simpanManual(mn);
+      }catch(e){ console.error(e); }
       try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){ console.error(e); }
-      const lkSheets = sheetNama.filter(n => n.toLowerCase().includes('line up') || n.toLowerCase().includes('lineup'));
-      for(const nm of lkSheets){
-        const p = imporSheetLK(wb.Sheets[nm]);
-        if(p) pesanLK += p;
-      }
-
-      // Sheet 3: Tidak Tampil (opsional) — nama siswa diblokir di bulan tertentu.
-      let pesanTidak = '';
-      const ttSheet = sheetNama.find(n => n.toLowerCase().includes('tidak tampil') || n.toLowerCase().includes('block') || n.toLowerCase().includes('blokir'));
-      if(ttSheet){
-        try{ localStorage.removeItem(BLK_KEY); }catch(e){ console.error(e); }
-        pesanTidak = imporSheetTidakTampil(wb.Sheets[ttSheet]);
-      } else {
-        try{ localStorage.removeItem(BLK_KEY); }catch(e){ console.error(e); }
-      }
+      // Ban web (BLK, basis nama) dipertahankan utuh — klik Atur jadwal untuk generate ulang.
 
       simpanData();
       render();
-      alert(`Import selesai: data siswa diganti total (${siswa.length} siswa dari Excel${dilewati>0 ? `, ${dilewati} baris dilewati (nama/ukuran tidak valid)` : ''}).${pesanLK}${pesanTidak}`);
+      alert(`Import selesai: ${siswa.length} siswa (Nama/Ukuran/JK) diganti total dari Excel${dilewati>0 ? `, ${dilewati} baris dilewati` : ''}. Data web (khusus, edit manual, ban) dipertahankan & dicocokkan via nama.${jmlAbaikan>0 ? ` ${jmlAbaikan} sheet lama (Line Up/Tidak Tampil) diabaikan.` : ''} Klik Atur jadwal untuk generate ulang.`);
     }catch(err){
-      alert('Gagal membaca file Excel. Pastikan formatnya benar (sheet Siswa + opsional Line Up Khusus / Tidak Tampil).');
+      alert('Gagal membaca file Excel. Pastikan ada sheet Siswa (kolom Nama, Ukuran, JK).');
       console.error(err);
     }
     event.target.value = '';
@@ -545,6 +582,57 @@ function blokirKey(thn, bln){
   return thn + '-' + bln;
 }
 
+// ===== BAN PER BULAN DARI WEB (format sama dengan sheet Tidak Tampil lama) =====
+function banKeyDariUI(){
+  const th = parseInt((document.getElementById('banTahun')||{}).value, 10);
+  const bl = (document.getElementById('banBulan')||{}).value;
+  return (isNaN(th) ? '' : th) + '-' + bl;
+}
+function renderBan(){
+  const box = document.getElementById('daftarBan');
+  if(!box) return;
+  const data = muatTidakTampil();
+  const key = banKeyDariUI();
+  const list = data[key] || [];
+  if(!siswa.length){ box.innerHTML = '<div class="opsi">Belum ada siswa.</div>'; return; }
+  box.innerHTML = siswa.map(s => {
+    const on = list.some(nm => String(nm).toLowerCase() === s.nama.toLowerCase());
+    return '<div class="opsi' + (on ? ' merah' : '') + '"><span>' + esc(s.nama) +
+      ' <span class="badge">' + esc(s.ukuran) + '</span>' + (on ? ' 🚫' : '') +
+      '</span><button onclick="toggleBan(' + s.id + ')">' + (on ? 'Buka' : 'Ban') + '</button></div>';
+  }).join('');
+}
+function toggleBan(id){
+  const s = siswa.find(x => x.id === id);
+  if(!s) return;
+  const data = muatTidakTampil();
+  const key = banKeyDariUI();
+  if(!data[key]) data[key] = [];
+  const i = data[key].findIndex(nm => String(nm).toLowerCase() === s.nama.toLowerCase());
+  if(i >= 0) data[key].splice(i, 1); else data[key].push(s.nama);
+  if(!data[key].length) delete data[key];
+  try{ localStorage.setItem(BLK_KEY, JSON.stringify(data)); }catch(e){ console.error(e); }
+  try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
+  renderBan(); render(); tandaiTersimpan('Ban tersimpan · ');
+}
+function bukaSemuaBan(){
+  const data = muatTidakTampil();
+  const key = banKeyDariUI();
+  if(!data[key] || !data[key].length) return;
+  if(!confirm('Buka semua ban pada bulan ini?')) return;
+  delete data[key];
+  try{ localStorage.setItem(BLK_KEY, JSON.stringify(data)); }catch(e){ console.error(e); }
+  try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
+  renderBan(); render(); tandaiTersimpan('Ban tersimpan · ');
+}
+function sinkronBan(){
+  try{
+    document.getElementById('banBulan').value = document.getElementById('bulan').value;
+    document.getElementById('banTahun').value = document.getElementById('tahun').value;
+  }catch(e){}
+  renderBan();
+}
+
 function unduhTemplate(){
   if(typeof ExcelJS === 'undefined'){
     alert('Library ExcelJS belum termuat. Periksa koneksi internet lalu muat ulang halaman.');
@@ -589,106 +677,17 @@ function unduhTemplate(){
     };
   }
 
-  // ===== Sheet 2: Line Up Khusus =====
-  const ws2 = wb.addWorksheet('Line Up Khusus');
-  ws2.columns = [{width:34},{width:26}];
-  ws2.getCell('A1').value = 'LINE UP KHUSUS (penampilan yang sudah ditetapkan, misal 3 Agustus)';
-  ws2.getCell('A1').font = {bold:true, size:13};
-  ws2.getCell('A1').fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFFDF3D7'}};
-
-  ws2.getCell('A2').value = 'Bulan';
-  ws2.getCell('B2').value = 'Agustus';
-  ws2.getCell('A3').value = 'Tahun';
-  ws2.getCell('B3').value = 2026;
-  ws2.getCell('A4').value = 'Hari tampil (Senin ke-1 s.d. ke-5 ATAU tanggal bebas, mis. 15 Agustus 2026, untuk penampilan ekstra)';
-  ws2.getCell('B4').value = 'Senin ke-1';
-  ws2.getCell('A2').font = {bold:true};
-  ws2.getCell('A3').font = {bold:true};
-  ws2.getCell('A4').font = {bold:true};
-
-  ws2.getCell('A6').value = 'Posisi';
-  ws2.getCell('B6').value = 'Nama siswa (harus sama dengan di sheet Siswa)';
-  ws2.getCell('A6').font = {bold:true};
-  ws2.getCell('B6').font = {bold:true};
-
-  const contohLK = [
-    'Baris 1 · Kiri','Baris 1 · Tengah','Baris 1 · Kanan',
-    'Baris 2 · Kiri','Baris 2 · Tengah','Baris 2 · Kanan',
-    'Baris 3 · Kiri','Baris 3 · Tengah','Baris 3 · Kanan'
-  ];
-  const contohNamaLK = ['rafa','alif','mufid','alya','nayara','nabila','ulfa','meila','amira'];
-  contohLK.forEach((label, i) => {
-    ws2.getCell('A'+(7+i)).value = label;
-    ws2.getCell('B'+(7+i)).value = contohNamaLK[i];
-  });
-
-  ws2.getCell('B2').dataValidation = {
-    type:'list',
-    formulae:['"' + NAMA_BULAN.join(',') + '"'],
-    allowBlank:true
-  };
-  for(let r=7; r<=15; r++){
-    ws2.getCell('B'+r).dataValidation = {
-      type:'list',
-      formulae:["'Siswa'!$A$3:$A$200"],
-      allowBlank:true
-    };
-  }
-
-  ws2.getCell('A17').value = 'PENAMPILAN EKSTRA: isi "Hari tampil" dengan TANGGAL BEBAS (mis. "2026-08-15", "15 Agustus 2026", "Sabtu 15 Agustus 2026") untuk tampil di hari selain Senin. LIBUR: kosongkan SEMUA 9 posisi (Bulan/Tahun/Hari tetap diisi) = minggu/tanggal dilewati. CARA BIKIN BANYAK LINE UP KHUSUS: duplikasi sheet ini (klik kanan tab sheet -> Move or Copy -> centang "Create a copy"), rename mis. "Line Up Khusus 2", lalu isi Bulan/Tahun/Hari/9 posisi yang lain. Setiap sheet yang namanya mengandung "Line Up" = 1 line up khusus, semuanya ikut diimport.';
-  ws2.getCell('A17').font = {italic:true, size:10};
-  ws2.mergeCells('A17:B18');
-  ws2.getCell('A17').alignment = {wrapText:true, vertical:'top'};
-
-  // ===== Sheet 3: Tidak Tampil (opsional) =====
-  const ws3 = wb.addWorksheet('Tidak Tampil');
-  ws3.columns = [{width:32},{width:14},{width:12}];
-  ws3.getCell('A1').value = 'TIDAK TAMPIL (opsional) — siswa ini dikecualikan dari jadwal pada bulan tersebut';
-  ws3.getCell('A1').font = {bold:true, size:13};
-  ws3.getCell('A1').fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFFBE4E4'}};
-  ws3.getCell('A2').value = 'Nama';
-  ws3.getCell('B2').value = 'Bulan';
-  ws3.getCell('C2').value = 'Tahun';
-  ws3.getCell('A2').font = {bold:true};
-  ws3.getCell('B2').font = {bold:true};
-  ws3.getCell('C2').font = {bold:true};
-
-  ws3.getCell('A3').value = 'Isi nama siswa (harus sama dengan di sheet Siswa)';
-  ws3.getCell('B3').value = 'Pilih bulan';
-  ws3.getCell('C3').value = 2026;
-  ws3.getCell('A3').font = {italic:true, color:{argb:'FF777777'}};
-  ws3.getCell('B3').font = {italic:true, color:{argb:'FF777777'}};
-  ws3.getCell('C3').font = {italic:true, color:{argb:'FF777777'}};
-
-  for(let r=3; r<=200; r++){
-    ws3.getCell('A'+r).dataValidation = {
-      type:'list',
-      formulae:["'Siswa'!$A$3:$A$200"],
-      allowBlank:true
-    };
-    ws3.getCell('B'+r).dataValidation = {
-      type:'list',
-      formulae:['"' + NAMA_BULAN.join(',') + '"'],
-      allowBlank:true
-    };
-  }
-
-  // ===== Sheet 4: Info & Cara Pakai =====
+  // ===== Sheet 2: Info & Cara Pakai =====
+  // (Sheet Line Up Khusus & Tidak Tampil DIHAPUS dari template — khusus & ban dikelola via web.)
   const ws4 = wb.addWorksheet('Info');
   ws4.columns = [{width:30},{width:95}];
   const infoRows = [
     ['', 'INFO & CARA PAKAI'],
-    ['Sheet', 'Siswa — daftar siswa.'],
+    ['Sheet', 'Siswa — daftar siswa (satu-satunya sheet yang dibaca saat import).'],
     ['Kolom Siswa', 'A=Nama (wajib), B=Ukuran (M2/M1/L/S), C=Jenis Kelamin (LK/PR).'],
-    ['Import', 'Upload file Excel mengganti SEMUA data lama dengan isi file. Id siswa direset 1..N.'],
-    ['Sheet', 'Line Up Khusus — penampilan yang sudah pasti (Senin ke-N atau tanggal bebas / penampilan ekstra).'],
-    ['Kolom Line Up', 'Bulan, Tahun, "Hari tampil", lalu 9 posisi (Baris 1-3 x kiri/tengah/kanan) diisi NAMA siswa yang akan tampil. "Hari tampil" = "Senin ke-1 s.d. ke-5" untuk menggantikan jadwal Senin, ATAU tanggal bebas (mis. "2026-08-15", "15 Agustus 2026", "Sabtu 15 Agustus 2026") untuk penampilan ekstra di hari lain.'],
-    ['Line Up Khusus', 'MENGABAIKAN semua logika: 9 posisi tampil PERSIS seperti diisi, tanpa diubah. Ditandai "★ LINE UP KHUSUS" di jadwal. Penampilan khusus tetap dihitung di rekap jumlah tampil agar adil; antrian rotasi siswa lain tidak terganggu.'],
-    ['Penampilan Ekstra', '"Hari tampil" diisi tanggal bebas (hari selain Senin) => kartu "★ EKSTRA" di bulan itu. Siswa diatur manual seperti line up khusus biasa; tetap dihitung di rekap.'],
-    ['Libur', 'Line up khusus yang SEMUA 9 posisinya kosong (Bulan/Tahun/Hari tetap diisi) = LIBUR: minggu/tanggal dilewati, tidak menarik rotasi, tidak menambah jumlah tampil.'],
-    ['Banyak Line Up', 'Bisa banyak line up khusus (tanpa batas): duplikasi sheet "Line Up Khusus" (klik kanan tab sheet -> Move or Copy -> Create a copy), rename mis. "Line Up Khusus 2", lalu isi yang lain. Semua sheet yang namanya mengandung "Line Up" diimport = 1 line up khusus per sheet.'],
-    ['Sheet', 'Tidak Tampil (opsional) — kecualikan siswa dari jadwal pada bulan tertentu (misal tidak ikut Januari-Maret).'],
-    ['Kolom Tidak Tampil', 'Nama, Bulan, Tahun. Tiap baris = 1 pengecualian (1 siswa diblokir 1 bulan).'],
+    ['Import', 'Upload mengganti total Nama/Ukuran/JK. Data web (line up khusus, edit manual, ban) dipertahankan & dicocokkan via nama persis. Sheet lain bila ada di file lama diabaikan. Klik Atur jadwal setelah import.'],
+    ['Line Up Khusus', 'Dibuat via web: klik nama di jadwal hasil untuk mengganti pemain (Tabel 1 = ukuran sama, Tabel 2 = beda ukuran). Minggu yang diedit otomatis ditandai KHUSUS, bebas logika ukuran, tetap dihitung rekap.'],
+    ['Ban per bulan', 'Dikelola via web di seksi "Ban per bulan": pilih bulan+tahun, centang Ban. Berlaku saat klik Atur jadwal.'],
     ['Jumlah bulan', 'Di aplikasi bisa diatur 2-12 bulan (bukan wajib 6). Isi bulan awal + tahun + jumlah bulan, lalu klik "Atur jadwal".'],
     ['Logika 1 ukuran', 'Dipakai saat PASKIBRA (Senin ke-1 & ke-3) dan sebagai fallback bila tak ada ukuran >= 6. Baju PASKIBRA cuma 3 pcs per ukuran, jadi 1 baris per ukuran. 7 variasi diputar urut (2 variasi per bulan di bulan normal): 1=M2,M1,L · 2=M2,M1,S · 3=M2,L,S · 4=L,M1,M2 · 5=S,M1,M2 · 6=S,L,M2 · 7=S,L,M1. M1 TIDAK pernah di Baris 1.'],
     ['Logika 2 ukuran', 'Dipakai saat PUTIH-PUTIH (Senin ke-2, ke-4, ke-5) HANYA jika ada ukuran (M2/M1/L/S) dengan jumlah siswa di data >= 6. Tidak ada aturan "wajib 2 ukuran": seluruh logika ditentukan data. 13 variasi diputar urut; variasi dipakai bila layak (ukuran yang mengisi 2 baris >= 6, ukuran lain ada di data): 1=M2,M2,L · 2=M2,M2,M1 · 3=M2,L,L · 4=M2,M1,M1 · 5=M2,M1,S · 6=L,L,M2 · 7=L,M1,M2 · 8=S,S,M2 · 9=S,L,L · 10=S,L,M2 · 11=S,M1,M2 · 12=L,L,S · 13=S,L,S. Bila tak ada variasi layak, minggu itu memakai logika 1 ukuran. M1 boleh tampil di Baris 2/3.'],
@@ -697,7 +696,7 @@ function unduhTemplate(){
     ['Seragam minggu ke-5', 'Bulan dengan 5 Senin: minggu ke-5 ikut dijadwalkan (PUTIH-PUTIH / 2-UKURAN), sehingga bulan berikutnya minggu ke-1 kembali PASKIBRA.'],
     ['Gender', 'Dalam satu baris: 2 LK + 1 PR => PR di tengah; 1 LK + 2 PR => LK di tengah.'],
     ['Rekap', 'Di bawah jadwal ada rekap jumlah tampil per siswa + tombol "Lihat" untuk detail tanggal tampil.'],
-    ['Nama siswa', 'Harus SAMA PERSIS antara sheet Siswa dan sheet Line Up Khusus / Tidak Tampil (kecil-besar & spasi diperhatikan tidak sengaja).']
+    ['Nama siswa', 'Harus SAMA PERSIS & konsisten (kecil-besar & spasi diperhatikan): pencocokan data web (khusus, edit manual, ban) memakai nama.']
   ];
   infoRows.forEach((row, i) => {
     ws4.getCell('A'+(i+1)).value = row[0];
@@ -736,12 +735,15 @@ function render(){
     if(kosongSiswa) kosongSiswa.style.display='block';
   } else {
     if(kosongSiswa) kosongSiswa.style.display='none';
+    let banSet = new Set();
+    try{ (muatTidakTampil()[banKeyDariUI()] || []).forEach(n => banSet.add(String(n).toLowerCase())); }catch(e){}
     siswa.forEach(s=>{
       const tr=document.createElement('tr');
       const badgeJk = s.jk === 'PR'
         ? `<span class="badge" style="background:#fbeaea;color:#b23a3a;">PR</span>`
         : `<span class="badge">LK</span>`;
-      tr.innerHTML = `<td>${esc(s.nama)}</td><td><span class="badge">${esc(s.ukuran)}</span></td><td>${badgeJk}</td>
+      const banChip = banSet.has(s.nama.toLowerCase()) ? ' 🚫' : '';
+      tr.innerHTML = `<td>${esc(s.nama)}${banChip}</td><td><span class="badge">${esc(s.ukuran)}</span></td><td>${badgeJk}</td>
         <td><button class="hapus" onclick="hapusSiswa(${s.id})">Hapus</button></td>`;
       tabel.appendChild(tr);
     });
@@ -755,6 +757,8 @@ function render(){
       stokBox.innerHTML += `<div class="box"><div class="ukuran">${u}</div><div class="jumlah">${jumlah}</div></div>`;
     });
   }
+
+  renderBan();
 }
 
 function getSeninBulan(bulan, tahun){
@@ -1471,6 +1475,7 @@ function pulihkanRiwayat(){
     document.getElementById('tahun').value = r.tahun;
     document.getElementById('jmlBulan').value = r.jml;
     const teks = document.getElementById('jmlBulanTeks'); if(teks) teks.textContent = r.jml;
+    sinkronBan();
     const D = (x) => x ? new Date(x) : null;
     const plan = r.plan.map(p => {
       if(p.skip) return {bln:p.bln, thn:p.thn, skip:true};
@@ -1491,6 +1496,8 @@ muatData();
 render();
 initPin();
 pulihkanRiwayat();
+sinkronBan();
+render();
 document.getElementById('jmlBulan').addEventListener('change', function(){
   const teks = document.getElementById('jmlBulanTeks');
   if(teks) teks.textContent = this.value;
