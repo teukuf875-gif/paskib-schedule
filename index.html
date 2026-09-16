@@ -8,40 +8,67 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{
-    --hijau-tua:#1f3d2b;
-    --hijau:#2e5c3f;
-    --hijau-muda:#4a8a5f;
-    --krem:#f6f4ec;
-    --putih:#ffffff;
-    --abu:#7c7c74;
-    --garis:#e0ddd2;
+    --hijau-tua:#4a4a45;
+    --hijau:#6b6b64;
+    --hijau-muda:#a8a094;
+    --krem:#EDE8DE;
+    --putih:#F7F3EC;
+    --abu:#8a867e;
+    --garis:#E3DCCF;
     --merah:#b23a3a;
     --emas:#c9a13b;
+    --clay-shadow:8px 8px 16px #D1C7B7, -8px -8px 16px #FFFFFF;
+    --clay-inset:inset 4px 4px 8px #D1C7B7, inset -4px -4px 8px #FFFFFF;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--krem);color:#232320;}
-  header{background:var(--hijau-tua);color:var(--krem);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:4px solid var(--emas);flex-wrap:wrap;}
-  header .kiri{display:flex;align-items:center;gap:16px;}
-  header .lambang{width:46px;height:46px;border-radius:50%;background:var(--emas);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--hijau-tua);font-size:18px;flex-shrink:0;}
-  header h1{margin:0;font-size:20px;letter-spacing:0.5px;}
-  header p{margin:2px 0 0;font-size:13px;color:#cfe0d3;}
-  header .status{font-size:12px;color:#cfe0d3;}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--krem);color:#3A3A38;}
+  /* ===== APP SHELL CLAY (ganti header memanjang) ===== */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{width:228px;flex-shrink:0;background:#F1ECE2;border-right:1px solid var(--garis);padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .brand .lambang{width:42px;height:42px;border-radius:50%;background:#F7F3EC;box-shadow:var(--clay-shadow);display:flex;align-items:center;justify-content:center;font-weight:800;color:#3A3A38;font-size:18px;flex-shrink:0;}
+  .brand b{font-size:15px;} .brand small{display:block;font-size:11px;color:var(--abu);font-weight:400;}
+  .nav{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .nav button{margin:0;text-align:left;background:transparent;color:#5b574f;border:none;padding:10px 12px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:center;}
+  .nav button.aktif{background:#F7F3EC;box-shadow:var(--clay-shadow);color:#232320;}
+  .nav button:hover{background:#F7F3EC;}
+  .side-label{font-size:11px;color:var(--abu);text-transform:uppercase;letter-spacing:.8px;margin:16px 4px 6px;}
+  .side-card{background:#F7F3EC;border-radius:16px;box-shadow:var(--clay-shadow);padding:12px;font-size:12px;color:var(--abu);margin-top:14px;line-height:1.5;}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(237,232,222,.9);backdrop-filter:blur(6px);border-bottom:1px solid var(--garis);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar .search{flex:1;min-width:180px;background:#F7F3EC;border-radius:999px;box-shadow:var(--clay-inset);padding:9px 16px;font-size:13px;border:1px solid var(--garis);}
+  .topbar .btn-create{margin:0;border-radius:999px;padding:9px 18px;background:#3A3A38;color:#F7F3EC;}
+  .topbar .iconbtn{margin:0;width:36px;height:36px;border-radius:50%;background:#F7F3EC;color:#3A3A38;box-shadow:var(--clay-shadow);padding:0;font-size:15px;}
+  .topbar .status{font-size:12px;color:var(--abu);}
+  .hamb{display:none;}
+  header.hero{display:none;}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 24px 60px;width:100%;}
+  .view{display:none;} .view.aktif{display:block;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:900px){
+    .sidebar{position:fixed;z-index:900;left:0;top:0;transform:translateX(-110%);transition:transform .2s;box-shadow:var(--clay-shadow);}
+    .sidebar.buka{transform:none;}
+    .hamb{display:inline-block;}
+    .grid{grid-template-columns:1fr;}
+  }
 
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-  @media (max-width:800px){.grid{grid-template-columns:1fr;}}
-
-  .card{background:var(--putih);border:1px solid var(--garis);border-radius:10px;padding:20px;}
-  .card h2{margin:0 0 14px;font-size:15px;color:var(--hijau-tua);text-transform:uppercase;letter-spacing:0.8px;border-bottom:2px solid var(--emas);padding-bottom:8px;}
+  .card{background:var(--putih);border:1px solid var(--garis);border-radius:20px;padding:20px;box-shadow:var(--clay-shadow);}
+  .card h2{margin:0 0 14px;font-size:15px;color:#3A3A38;text-transform:uppercase;letter-spacing:0.8px;border-bottom:2px solid var(--garis);padding-bottom:8px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  @media (max-width:800px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:#F7F3EC;border-radius:18px;box-shadow:var(--clay-shadow);padding:14px;border:1px solid var(--garis);}
+  .stat .lbl{font-size:11px;color:var(--abu);text-transform:uppercase;letter-spacing:.6px;}
+  .stat .val{font-size:22px;font-weight:800;margin:4px 0 2px;}
+  .stat .sub{font-size:11px;color:var(--abu);}
   label{display:block;font-size:12px;color:var(--abu);margin-bottom:4px;margin-top:10px;}
-  input,select{width:100%;padding:8px 10px;border:1px solid var(--garis);border-radius:6px;font-size:14px;background:#fff;}
-  input:focus,select:focus{outline:none;border-color:var(--hijau-muda);}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--garis);border-radius:14px;font-size:14px;background:#FDFBF7;box-shadow:var(--clay-inset);}
+  input:focus,select:focus{outline:none;border-color:var(--emas);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  button{margin-top:16px;padding:9px 16px;border:none;border-radius:6px;background:var(--hijau-tua);color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
-  button:hover{background:var(--hijau);}
-  button.secondary{background:transparent;color:var(--hijau-tua);border:1px solid var(--hijau-tua);}
-  button.secondary:hover{background:#eef4ef;}
-  button.hapus{background:transparent;color:var(--merah);border:1px solid var(--merah);padding:4px 10px;font-size:12px;margin-top:0;}
+  button{margin-top:16px;padding:10px 18px;border:none;border-radius:999px;background:#3A3A38;color:#F7F3EC;font-size:13px;font-weight:600;cursor:pointer;box-shadow:4px 4px 10px #D1C7B7;}
+  button:hover{filter:brightness(1.08);}
+  button.secondary{background:#F7F3EC;color:#3A3A38;border:1px solid var(--garis);box-shadow:var(--clay-shadow);}
+  button.secondary:hover{background:#fff;}
+  button.hapus{background:transparent;color:var(--merah);border:1px solid var(--merah);padding:4px 10px;font-size:12px;margin-top:0;box-shadow:none;border-radius:999px;}
   button.hapus:hover{background:#fbeaea;}
   button.full{width:100%;}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
@@ -52,20 +79,21 @@
   table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
   th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--garis);}
   th{color:var(--abu);font-weight:600;font-size:11px;text-transform:uppercase;}
-  .badge{display:inline-block;padding:2px 8px;border-radius:12px;background:#eef4ef;color:var(--hijau-tua);font-size:12px;font-weight:600;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#EDE8DE;color:#3A3A38;font-size:12px;font-weight:600;box-shadow:var(--clay-inset);}
   .kosong{color:var(--abu);font-size:13px;font-style:italic;padding:10px 0;}
 
-  .stok{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
-  .stok .box{border:1px solid var(--garis);border-radius:8px;padding:8px;text-align:center;}
+  .stok{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+  @media (max-width:800px){.stok{grid-template-columns:repeat(2,1fr);}}
+  .stok .box{border:1px solid var(--garis);border-radius:16px;padding:10px;text-align:center;background:#FDFBF7;box-shadow:var(--clay-shadow);}
   .stok .box .ukuran{font-size:12px;color:var(--abu);}
-  .stok .box .jumlah{font-size:18px;font-weight:700;color:var(--hijau-tua);}
+  .stok .box .jumlah{font-size:18px;font-weight:800;color:#3A3A38;}
 
-  .warn{background:#fbeaea;color:var(--merah);border:1px solid #f0c9c9;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:14px;}
+  .warn{background:#fbeaea;color:var(--merah);border:1px solid #f0c9c9;border-radius:14px;padding:10px 14px;font-size:13px;margin-top:14px;}
 
-  .monthcard{border:1px solid var(--garis);border-radius:10px;padding:16px 18px;margin-top:16px;break-inside:avoid;}
-  .monthcard .judul{font-weight:700;color:var(--hijau-tua);font-size:16px;}
-  .monthcard .judul.jdlA{background:#c62828;color:#fff;padding:4px 12px;border-radius:8px;display:inline-block;}
-  .monthcard .judul.jdlB{background:#fff;color:#c62828;padding:4px 12px;border-radius:8px;display:inline-block;border:1px solid #c62828;}
+  .monthcard{border:1px solid var(--garis);border-radius:20px;padding:16px 18px;margin-top:16px;break-inside:avoid;background:#F7F3EC;box-shadow:var(--clay-shadow);}
+  .monthcard .judul{font-weight:800;color:#3A3A38;font-size:16px;}
+  .monthcard .judul.jdlA{background:#3A3A38;color:#F7F3EC;padding:4px 12px;border-radius:999px;display:inline-block;box-shadow:var(--clay-shadow);}
+  .monthcard .judul.jdlB{background:#F7F3EC;color:#3A3A38;padding:4px 12px;border-radius:999px;display:inline-block;border:1px solid var(--garis);box-shadow:var(--clay-shadow);}
   .monthcard .tgl{font-size:12px;color:var(--abu);margin-bottom:6px;}
   .weeks4{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
   .weeks4 .weekcard{border:none;padding:0;margin-top:0;}
@@ -137,14 +165,19 @@
   .tbl-note{font-size:11px;color:var(--abu);margin-bottom:2px;}
 
 @media print{
-    #pinGate,#modalGanti{display:none !important;}
+    #pinGate,#modalGanti,.sidebar,.topbar,.no-print{display:none !important;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page{size:A4 portrait;margin:8mm;}
-    header,.grid,#exportRow,.linklike,.no-print{display:none !important;}
+    #exportRow,.linklike{display:none !important;}
     body{background:#fff;}
+    .app{display:block;}
+    .sidebar{display:none !important;}
+    .main{display:block;}
     .wrap{max-width:100%;padding:0;}
-    .card{border:none;padding:0;margin-top:0 !important;}
-    .monthcard{border:1px solid #aaa;padding:8px 10px;margin-top:0;break-inside:avoid;}
+    .view{display:block !important;}
+    .view.no-print-view{display:none !important;}
+    .card{border:1px solid #ddd;padding:8px;margin-top:8px !important;box-shadow:none;border-radius:8px;}
+    .monthcard{border:1px solid #aaa;padding:8px 10px;margin-top:0;break-inside:avoid;box-shadow:none;}
     .monthcard:first-child{margin-top:0;}
     .monthcard + .monthcard, .rekap{break-before:page;}
     .chip.edit,.tanda-khusus,.bintang,.lg.seragam{display:none !important;}
@@ -188,29 +221,85 @@
   </div>
 </div>
 
-<header>
-  <div class="kiri">
-    <div class="lambang">P</div>
-    <div>
-      <h1>Paskibra schedule generator</h1>
-      <p>Rencana lineup fleksibel (2–12 bulan) — 4–5 Senin tiap bulan: PASKIBRA (Senin ke-1 &amp; ke-3), PUTIH-PUTIH (Senin ke-2, ke-4, &amp; ke-5)</p>
-    </div>
+<div class="app">
+<aside class="sidebar no-print" id="sidebar">
+  <div class="brand"><div class="lambang">P</div><div><b>Paskibra</b><small>SMP 7 · Schedule</small></div></div>
+  <div class="nav" id="mainNav">
+    <button data-view="overview" class="aktif" onclick="showView('overview')">◎ Overview</button>
+    <button data-view="data" onclick="showView('data')">▦ Data siswa</button>
+    <button data-view="atur" onclick="showView('atur')">⚙ Atur jadwal</button>
+    <button data-view="hasil" onclick="showView('hasil')">▤ Hasil</button>
+    <button data-view="rekap" onclick="showView('rekap')">≡ Rekap</button>
+    <button data-view="ban" onclick="showView('ban')">⊘ Ban per bulan</button>
+    <button data-view="info" onclick="showView('info')">ⓘ Info</button>
   </div>
-  <div class="status" id="statusSimpan">Data tersimpan otomatis di browser ini</div>
+  <div class="side-label">Status</div>
+  <div class="side-card" id="statusSimpan">Data tersimpan otomatis di browser ini</div>
+  <div class="side-card">PASKIBRA: Senin 1 & 3<br>PUTIH: Senin 2, 4, 5<br>Klik nama di formasi untuk ganti pemain.</div>
+</aside>
+<div class="main">
+<header class="topbar no-print">
+  <button class="iconbtn hamb" onclick="document.getElementById('sidebar').classList.toggle('buka')">☰</button>
+  <input class="search" id="searchTop" type="text" placeholder="Search workspace... (cari nama siswa)" oninput="filterDariTopbar(this.value)">
+  <button class="btn-create" onclick="showView('atur');aturJadwal()">+ Atur jadwal</button>
+  <button class="iconbtn" title="Export PDF" onclick="window.print()">⎙</button>
+  <button class="iconbtn" title="Keluar (kunci PIN)" onclick="try{sessionStorage.removeItem('paskib_ok')}catch(e){};location.reload()">↪</button>
 </header>
+<header class="hero"><div><h1>Paskibra schedule generator</h1></div></header>
 
 <div class="wrap">
-  <div class="grid">
+  <!-- OVERVIEW -->
+  <section class="view aktif" id="view-overview">
+    <h2 style="margin:4px 0 2px;font-size:24px;">Overview</h2>
+    <div class="info" style="margin-bottom:14px;">Rencana lineup fleksibel (2–12 bulan) — PASKIBRA (Senin ke-1 & ke-3), PUTIH-PUTIH (Senin ke-2, ke-4, & ke-5). Pilih menu kiri untuk kerja, tidak lagi scroll panjang.</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="lbl">Total siswa</div><div class="val" id="statTotal">0</div><div class="sub" id="statTotalSub">—</div></div>
+      <div class="stat"><div class="lbl">Stok ukuran</div><div class="val" style="font-size:15px;" id="statStok">M2 0 · M1 0</div><div class="sub" id="statStokSub">L 0 · S 0</div></div>
+      <div class="stat"><div class="lbl">Total slot tampil</div><div class="val" id="statSlot">0</div><div class="sub">termasuk ekstra & khusus</div></div>
+      <div class="stat"><div class="lbl">Bulan aktif</div><div class="val" id="statBulan">0</div><div class="sub" id="statBulanSub">belum generate</div></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Atur cepat</h2>
+        <div class="row2">
+          <div><label for="bulan">Bulan awal</label>
+          <select id="bulan">
+            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
+            <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
+            <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
+            <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+          </select></div>
+          <div><label for="tahun">Tahun</label><input id="tahun" type="number" value="2026" min="2020" max="2100"></div>
+        </div>
+        <div><label for="jmlBulan">Jumlah bulan</label>
+        <select id="jmlBulan">
+          <option value="2">2 bulan</option><option value="3">3 bulan</option><option value="4">4 bulan</option>
+          <option value="5">5 bulan</option><option value="6" selected>6 bulan</option><option value="7">7 bulan</option>
+          <option value="8">8 bulan</option><option value="9">9 bulan</option><option value="10">10 bulan</option>
+          <option value="11">11 bulan</option><option value="12">12 bulan</option>
+        </select></div>
+        <button class="full" onclick="aturJadwal()">Atur jadwal</button>
+        <div id="pesanError" class="no-print"></div>
+      </div>
+      <div class="card">
+        <h2>Stok baju paskibra</h2>
+        <div class="info">Ukuran: <b>M2</b>, <b>M1</b>, <b>L</b>, <b>S</b>. Distribusi tampil adil via rotator.</div>
+        <div class="stok" id="stokBox"></div>
+        <div class="btnrow" style="margin-top:12px;"><button class="secondary" onclick="showView('data')">Kelola siswa</button><button class="secondary" onclick="showView('hasil')">Lihat hasil</button></div>
+      </div>
+    </div>
+  </section>
 
+  <!-- DATA -->
+  <section class="view" id="view-data">
     <div class="card">
       <h2>Data siswa</h2>
-
       <label for="importExcel">Import dari Excel (sheet Siswa: Nama, Ukuran, JK)</label>
       <input id="importExcel" type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event)">
       <button class="linklike" onclick="unduhTemplate()">Unduh template Excel</button>
       <div class="info">Excel hanya untuk update massal <b>Nama/Ukuran/JK</b>. Data web (line up khusus, edit manual, ban) <b>dipertahankan</b> & dicocokkan via nama. Sheet lain bila ada di file lama akan diabaikan.</div>
-
       <h2 style="margin-top:24px;">Daftar siswa (<span id="jumlahSiswa">0</span>)</h2>
+      <input id="cariSiswa" type="text" placeholder="Cari nama / ukuran..." oninput="render()" style="margin-top:6px;">
       <table>
         <thead><tr><th>Nama</th><th>Ukuran</th><th>JK</th><th></th></tr></thead>
         <tbody id="tabelSiswa"></tbody>
@@ -218,57 +307,52 @@
       <div id="kosongSiswa" class="kosong" style="display:none;">Belum ada siswa. Import dari Excel (unduh template di atas).</div>
       <button class="secondary full" onclick="hapusSemuaSiswa()">Hapus semua data siswa</button>
     </div>
+  </section>
 
+  <!-- ATUR -->
+  <section class="view" id="view-atur">
     <div class="card">
-      <h2>Stok baju paskibra</h2>
-      <div class="info">Ukuran yang dipakai: <b>M2</b>, <b>L</b>, dan <b>S</b>.</div>
-      <div class="stok" id="stokBox"></div>
-
-      <h2 style="margin-top:24px;">Atur rencana jadwal</h2>
-      <div class="row2">
-        <div>
-          <label for="bulan">Bulan awal</label>
-          <select id="bulan">
-            <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option>
-            <option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option>
-            <option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option>
-            <option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
-          </select>
-        </div>
-        <div>
-          <label for="tahun">Tahun</label>
-          <input id="tahun" type="number" value="2026" min="2020" max="2100">
-        </div>
-      </div>
-      <div>
-        <label for="jmlBulan">Jumlah bulan</label>
-        <select id="jmlBulan">
-          <option value="2">2 bulan</option><option value="3">3 bulan</option><option value="4">4 bulan</option>
-          <option value="5">5 bulan</option><option value="6" selected>6 bulan</option><option value="7">7 bulan</option>
-          <option value="8">8 bulan</option><option value="9">9 bulan</option><option value="10">10 bulan</option>
-          <option value="11">11 bulan</option><option value="12">12 bulan</option>
-        </select>
-      </div>
+      <h2>Atur rencana jadwal</h2>
+      <div class="info">Akan dibuat jadwal <b><span id="jmlBulanTeks">6</span> bulan berurutan</b>. Setiap bulan: <b>4–5 Senin</b>. Seragam: PASKIBRA (1 & 3), PUTIH (2,4,5). Bulan & tahun diambil dari Overview (sama).</div>
+      <details style="margin-top:10px;"><summary style="cursor:pointer;font-size:13px;font-weight:700;">Detail logika 1-ukuran / 2-ukuran & gender</summary>
 <div class="info">
-        Akan dibuat jadwal <b><span id="jmlBulanTeks">6</span> bulan berurutan</b> (contoh: Januari–Maret = 3 bulan). Setiap bulan: <b>4–5 Senin</b> (ke-1 s.d. ke-4, plus ke-5 bila bulan itu punya 5 Senin).<br>
         • <b>Ukuran</b>: M2, M1, L, S (terbesar → terkecil).<br>
-        • <b>LOGIKA 1 UKURAN</b> — dipakai saat <b>PASKIBRA</b> (Senin ke-1 & ke-3) dan sebagai fallback bila tak ada ukuran ≥ 6: baju PASKIBRA cuma 3 pcs per ukuran, jadi 1 baris per ukuran. 7 variasi diputar urut (2 variasi per bulan di bulan normal).<br>
-        • <b>LOGIKA 2 UKURAN</b> — dipakai saat <b>PUTIH-PUTIH</b> (Senin ke-2, ke-4, ke-5) <b>HANYA jika ada ukuran (M2/M1/L/S) dengan ≥ 6 siswa di data</b>. Tidak ada aturan "wajib 2 ukuran": seluruh logika ditentukan data. 13 variasi diputar urut; variasi dipakai bila layak (ukuran yang mengisi 2 baris ≥ 6, ukuran lain ada di data). Bila tak ada variasi layak, minggu itu memakai LOGIKA 1 UKURAN.<br>
-        • <b>M1 tidak pernah di baris depan</b> — M1 hanya tampil di Baris 2/3, boleh ikut LOGIKA 2 UKURAN (ikut variasi) bila ada ≥ 6.<br>
-        • <b>Semua fleksibel sesuai data</b> — bila tidak ada ukuran ≥ 6, minggu PUTIH-PUTIH pun memakai LOGIKA 1 UKURAN.<br>
-        • <b>Seragam</b>: PASKIBRA (Senin ke-1 & ke-3), PUTIH-PUTIH (Senin ke-2, ke-4, ke-5).<br>
-        • Kedua logika bergantian sebagai rotasi siswa supaya adil & tidak bosan.<br>
-        • Satu baris = satu ukuran; baris kosong bila ukurannya tidak ada.<br>
-        • Jika dalam satu baris ada <b>2 LK & 1 PR</b>, maka <b>PR di tengah</b>; jika <b>1 LK & 2 PR</b>, maka <b>LK di tengah</b>.<br>
-        • Ada rekap jumlah tampil (termasuk penampilan line up khusus).
-      </div>
+        • <b>LOGIKA 1 UKURAN</b> — PASKIBRA (Senin 1 & 3) + fallback bila tak ada ukuran ≥ 6. 7 variasi diputar urut.<br>
+        • <b>LOGIKA 2 UKURAN</b> — PUTIH (Senin 2,4,5) HANYA jika ada ukuran ≥ 6. 13 variasi, dipakai bila layak, else fallback 1-ukuran.<br>
+        • <b>M1 tidak pernah di baris depan.</b> Satu baris = satu ukuran.<br>
+        • Gender: 2LK+1PR → PR tengah; 1LK+2PR → LK tengah. Rekap termasuk khusus/ekstra.
+      </div></details>
       <button class="full" onclick="aturJadwal()">Atur jadwal</button>
-      <div id="pesanError" class="no-print"></div>
     </div>
+  </section>
 
-  </div>
+  <!-- HASIL -->
+  <section class="view" id="view-hasil">
+    <div class="card">
+      <h2>Hasil rencana</h2>
+      <div class="btnrow" id="exportRow" style="display:none;">
+        <button class="secondary" onclick="window.print()">Export ke PDF (portrait, 1 bulan = 1 halaman)</button>
+        <button class="secondary" onclick="resetSemuaManual()">Reset semua edit manual</button>
+      </div>
+      <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain. Tabel 1 = ukuran sama, Tabel 2 = beda (jadi KHUSUS).</div>
+      <div id="hasilJadwal"></div>
+      <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
+    </div>
+  </section>
 
-  <div class="card no-print" style="margin-top:24px;">
+  <!-- REKAP -->
+  <section class="view" id="view-rekap">
+    <div class="card rekap" id="rekapCard">
+      <h2>Rekap jumlah tampil</h2>
+      <div class="info" id="rekapInfo">Belum ada jadwal.</div>
+      <input id="cariRekap" type="text" placeholder="Cari nama di rekap..." oninput="renderRekapFilter()" style="margin-top:8px;">
+      <div id="hasilRekap"></div>
+    </div>
+  </section>
+
+  <!-- BAN -->
+  <section class="view" id="view-ban">
+  <div class="card no-print">
     <h2>Ban per bulan (tidak tampil)</h2>
     <div class="info">Pilih bulan + tahun, centang <b>Ban</b> pada siswa yang diskip, lalu klik <b>Atur jadwal</b> lagi. Ban tersimpan per bulan di browser ini (tidak perlu Excel).</div>
     <div class="row2">
@@ -289,22 +373,17 @@
     <div id="daftarBan"></div>
     <button class="secondary full" onclick="bukaSemuaBan()">Buka semua ban bulan ini</button>
   </div>
+  </section>
 
-  <div class="card no-print" style="margin-top:24px;">
+  <!-- INFO -->
+  <section class="view" id="view-info">
+  <div class="card no-print">
     <h2>Line up khusus (penampilan yang sudah ditetapkan)</h2>
     <div class="info">Line up khusus dibuat <b>langsung di web</b>: klik nama di jadwal hasil untuk mengganti pemain (Tabel 1 = ukuran sama, Tabel 2 = beda ukuran). Minggu yang diedit otomatis bertanda <b>KHUSUS</b> — bebas logika ukuran, tampil persis, <b>tetap dihitung</b> di rekap; rotasi siswa lain tidak terganggu. File Excel lama berisi sheet Line Up/Tidak Tampil tetap bisa diupload (sheet itu diabaikan, data web dipertahankan).</div>
   </div>
-
-  <div class="card" style="margin-top:24px;">
-    <h2>Hasil rencana</h2>
-    <div class="btnrow" id="exportRow" style="display:none;">
-      <button class="secondary" onclick="window.print()">Export ke PDF (portrait, 1 bulan = 1 halaman)</button>
-      <button class="secondary" onclick="resetSemuaManual()">Reset semua edit manual</button>
-    </div>
-    <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain bila ada perubahan sedikit — tidak perlu upload Excel ulang. Pengganti disaring <b>ukuran sama</b> saja.</div>
-    <div id="hasilJadwal"></div>
-    <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
-  </div>
+  </section>
+</div>
+</div>
 </div>
 
 <script>
@@ -737,7 +816,8 @@ function render(){
     if(kosongSiswa) kosongSiswa.style.display='none';
     let banSet = new Set();
     try{ (muatTidakTampil()[banKeyDariUI()] || []).forEach(n => banSet.add(String(n).toLowerCase())); }catch(e){}
-    siswa.forEach(s=>{
+    const qSis = ((document.getElementById('cariSiswa')||{}).value||'').toLowerCase();
+    siswa.filter(s => !qSis || s.nama.toLowerCase().includes(qSis) || s.ukuran.toLowerCase().includes(qSis)).forEach(s=>{
       const tr=document.createElement('tr');
       const badgeJk = s.jk === 'PR'
         ? `<span class="badge" style="background:#fbeaea;color:#b23a3a;">PR</span>`
@@ -757,8 +837,53 @@ function render(){
       stokBox.innerHTML += `<div class="box"><div class="ukuran">${u}</div><div class="jumlah">${jumlah}</div></div>`;
     });
   }
+  try{ updateOverviewStats(); }catch(e){}
 
   renderBan();
+}
+// ===== NAVIGASI SIDEBAR CLAY (tanpa ubah logika jadwal) =====
+let rekapCache = [];
+function showView(nama){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('aktif'));
+  const el = document.getElementById('view-'+nama);
+  if(el) el.classList.add('aktif');
+  document.querySelectorAll('#mainNav button').forEach(b=>b.classList.toggle('aktif', b.dataset.view===nama));
+  try{ if(location.hash !== '#'+nama) history.replaceState(null,'','#'+nama); }catch(e){}
+  try{ document.getElementById('sidebar').classList.remove('buka'); }catch(e){}
+  try{ window.scrollTo({top:0}); }catch(e){}
+}
+function filterDariTopbar(v){
+  const c = document.getElementById('cariSiswa'); if(c){ c.value = v; }
+  const r = document.getElementById('cariRekap'); if(r){ r.value = v; renderRekapFilter(); }
+  try{ render(); }catch(e){}
+  if(v) showView('data');
+}
+function renderRekapFilter(){
+  const box = document.getElementById('hasilRekap'); if(!box) return;
+  const q = ((document.getElementById('cariRekap')||{}).value||'').toLowerCase();
+  const list = q ? rekapCache.filter(r=>r.nama.toLowerCase().includes(q)) : rekapCache;
+  box.innerHTML = '<table><thead><tr><th>#</th><th>Nama</th><th>Ukuran</th><th>JK</th><th>Jumlah</th><th></th></tr></thead><tbody>' +
+    (list.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(r.nama)+'</td><td><span class="badge">'+esc(r.ukuran)+'</span></td><td>'+(r.jk==='PR'?'PR':'LK')+'</td><td class="jumlah"><b>'+r.jumlah+' kali</b></td>'+
+    '<td><button class="secondary" style="margin:0;padding:4px 12px;font-size:12px;" onclick="toggleJadwalSiswa(this, '+JSON.stringify(r.jadwal).replace(/"/g,'&quot;')+')">Lihat</button></td></tr>'+
+    '<tr class="detail-tampil" style="display:none;"><td colspan="6"><ul>'+(r.jadwal.map(j=>'<li>'+esc(j)+'</li>').join('')||'<li>Belum terjadwal</li>')+'</ul></td></tr>').join('') || '<tr><td colspan="6" class="kosong">Tidak ada yang cocok.</td></tr>') + '</tbody></table>';
+}
+function updateOverviewStats(){
+  const t = document.getElementById('statTotal'); if(t) t.textContent = siswa.length;
+  const c = {};
+  UKURAN_LIST.forEach(u=>c[u]=siswa.filter(s=>s.ukuran===u).length);
+  const s1 = document.getElementById('statStok'); if(s1) s1.textContent = 'M2 '+c.M2+' · M1 '+c.M1;
+  const s2 = document.getElementById('statStokSub'); if(s2) s2.textContent = 'L '+c.L+' · S '+c.S;
+  try{
+    if(bulanPlanGlobal && bulanPlanGlobal.length){
+      const rk = hitungRekap(bulanPlanGlobal);
+      const tot = rk.reduce((a,r)=>a+r.jumlah,0);
+      const bln = bulanPlanGlobal.filter(b=>!b.skip).length;
+      if(document.getElementById('statSlot')) document.getElementById('statSlot').textContent = tot;
+      if(document.getElementById('statBulan')) document.getElementById('statBulan').textContent = bln;
+      const nm = bulanPlanGlobal.filter(b=>!b.skip).map(b=>NAMA_BULAN[b.bln].slice(0,3)).join(', ');
+      if(document.getElementById('statBulanSub')) document.getElementById('statBulanSub').textContent = nm || '—';
+    }
+  }catch(e){}
 }
 
 function getSeninBulan(bulan, tahun){
@@ -1181,7 +1306,7 @@ function weekHtml(judul, tanggal, seragam, m, khusus, tanpaSeragam, idCtx){
   </div>`;
 }
 
-function tampilkanJadwal(bulanPlan){
+function tampilkanJadwal(bulanPlan, opts){
   bulanPlanGlobal = bulanPlan;
   const hasil = document.getElementById('hasilJadwal');
   const kosong = document.getElementById('kosongJadwal');
@@ -1224,23 +1349,17 @@ function tampilkanJadwal(bulanPlan){
     hasil.appendChild(card);
   });
 
-  const rekapCard = document.createElement('div');
-  rekapCard.className = 'card rekap';
+  const rekapCache2 = rekap;
+  rekapCache = rekapCache2;
   const totalSlot = rekap.reduce((acc,r)=>acc+r.jumlah,0);
-  rekapCard.innerHTML = 
-    '<h2>Rekap jumlah tampil (' + bulanPlan.filter(b=>!b.skip).length + ' bulan aktif)</h2>' +
-    '<div class="info">Total penampilan: ' + totalSlot + ' slot (Senin ke-1 s.d. ke-5 bila ada, termasuk penampilan ekstra). Klik tombol <b>Lihat</b> untuk detail tanggal tampil per siswa.</div>' +
-    '<table>' +
-      '<thead><tr><th>#</th><th>Nama</th><th>Ukuran</th><th>JK</th><th>Jumlah tampil</th><th></th></tr></thead>' +
-      '<tbody>' +
-        rekap.map((r,i)=>'<tr>' +
-          '<td>' + (i+1) + '</td><td>' + esc(r.nama) + '</td><td><span class="badge">' + esc(r.ukuran) + '</span></td><td>' + (r.jk==='PR'?'PR':'LK') + '</td><td class="jumlah">' + r.jumlah + ' kali</td>' +
-          '<td><button class="secondary" onclick="toggleJadwalSiswa(this, ' + JSON.stringify(r.jadwal).replace(/"/g,'&quot;') + ')">Lihat</button></td>' +
-        '</tr>' +
-        '<tr class="detail-tampil" style="display:none;"><td colspan="6"><ul>' + (r.jadwal.map(j=>'<li>' + esc(j) + '</li>').join('') || '<li>Belum terjadwal</li>') + '</ul></td></tr>').join('') +
-      '</tbody>' +
-    '</table>';
-  hasil.appendChild(rekapCard);
+  const infoRekap = document.getElementById('rekapInfo');
+  if(infoRekap) infoRekap.textContent = 'Rekap ' + bulanPlan.filter(b=>!b.skip).length + ' bulan aktif · Total ' + totalSlot + ' slot (Senin ke-1 s.d. ke-5 bila ada, termasuk ekstra). Klik Lihat untuk detail.';
+  const qOld = ((document.getElementById('cariRekap')||{}).value||'');
+  try{ renderRekapFilter(); }catch(e){}
+  if(qOld){ try{ document.getElementById('cariRekap').value = qOld; renderRekapFilter(); }catch(e){} }
+  try{ updateOverviewStats(); }catch(e){}
+  const nav = !opts || opts.nav !== false;
+  if(nav){ try{ showView('hasil'); }catch(e){} }
   try{ simpanRiwayat(); }catch(e){}
 }function toggleJadwalSiswa(btn, jadwal){
   const tr = btn.closest('tr').nextElementSibling;
@@ -1488,7 +1607,7 @@ function pulihkanRiwayat(){
         ekstra:(p.e||[]).map(x=>({tanggal:new Date(x.t), w:(x.w||[]).map(get)}))};
     });
     terapkanManual(plan);
-    tampilkanJadwal(plan);
+    tampilkanJadwal(plan, {nav:false});
   }catch(e){ console.error('Gagal memulihkan riwayat', e); }
 }
 
@@ -1498,6 +1617,10 @@ initPin();
 pulihkanRiwayat();
 sinkronBan();
 render();
+try{
+  const h = (location.hash||'').replace('#','');
+  if(document.getElementById('view-'+h)) showView(h); else showView('overview');
+}catch(e){ try{ showView('overview'); }catch(_){} }
 document.getElementById('jmlBulan').addEventListener('change', function(){
   const teks = document.getElementById('jmlBulanTeks');
   if(teks) teks.textContent = this.value;
