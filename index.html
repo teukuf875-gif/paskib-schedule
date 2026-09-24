@@ -40,7 +40,6 @@
   .side-card{background:#F7F3EC;border-radius:16px;box-shadow:var(--clay-shadow);padding:12px;font-size:12px;color:var(--abu);margin-top:14px;line-height:1.5;}
   .main{flex:1;min-width:0;display:flex;flex-direction:column;}
   .topbar{position:sticky;top:0;z-index:50;background:rgba(237,232,222,.9);backdrop-filter:blur(6px);border-bottom:1px solid var(--garis);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .topbar .search{flex:1;min-width:180px;background:#F7F3EC;border-radius:999px;box-shadow:var(--clay-inset);padding:9px 16px;font-size:13px;border:1px solid var(--garis);}
   .topbar .btn-create{margin:0;border-radius:999px;padding:9px 18px;background:#3A3A38;color:#F7F3EC;}
   .topbar .iconbtn{margin:0;width:36px;height:36px;border-radius:50%;background:#F7F3EC;color:#3A3A38;box-shadow:var(--clay-shadow);padding:0;font-size:15px;}
   .topbar .status{font-size:12px;color:var(--abu);}
@@ -147,11 +146,8 @@
   .f-cell.bisa-edit{cursor:pointer;}
   .f-cell.bisa-edit:hover{border-color:var(--emas);box-shadow:0 0 0 2px rgba(201,161,59,.5);}
   .chip.edit{background:var(--emas);color:#fff;margin-left:4px;}
-  .f-cell.geser-sumber{border-color:var(--emas) !important;box-shadow:0 0 0 3px rgba(201,161,59,.7) !important;}
-  .f-cell.geser-target{border-style:dashed;}
   .geser-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;}
   .geser-bar button{margin-top:0;}
-  #statusGeser{font-size:12px;color:var(--abu);}
   #modalGanti{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;}
   #modalGanti .mbox{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow:auto;}
   #modalGanti .mbox h3{margin:0 0 4px;color:var(--hijau-tua);font-size:16px;}
@@ -159,6 +155,10 @@
   #daftarGanti .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;border-left:5px solid transparent;}
   #daftarGanti .opsi:last-child{border-bottom:none;}
   #daftarGanti .opsi button{margin-top:0;padding:4px 12px;font-size:12px;}
+  #daftarTukar{max-height:220px;overflow:auto;border:1px solid var(--garis);border-radius:8px;margin-top:10px;}
+  #daftarTukar .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;}
+  #daftarTukar .opsi:last-child{border-bottom:none;}
+  #daftarTukar .opsi button{margin-top:0;padding:4px 12px;font-size:12px;}
   #daftarBan{max-height:300px;overflow:auto;border:1px solid var(--garis);border-radius:8px;margin-top:10px;}
   #daftarBan .opsi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--garis);font-size:13px;border-left:5px solid transparent;}
   #daftarBan .opsi:last-child{border-bottom:none;}
@@ -226,6 +226,9 @@
     <input id="cariGanti" type="text" placeholder="Ketik nama..." oninput="renderDaftarGanti()">
     <div id="legendFrekuensi"></div>
     <div id="daftarGanti"></div>
+    <label style="margin-top:12px;font-weight:700;color:#3A3A38;">Tukar posisi dalam minggu ini (baris/kolom)</label>
+    <div class="info">Tanpa ganti orang — hanya tukar 2 kotak. Bisa untuk layar sentuh.</div>
+    <div id="daftarTukar"></div>
     <div class="btnrow" style="margin-top:12px;">
       <button class="secondary" onclick="tutupGanti()">Batal</button>
       <button class="secondary" onclick="resetSatuSlot()">Kembalikan asli</button>
@@ -251,7 +254,6 @@
 <div class="main">
 <header class="topbar no-print">
   <button class="iconbtn hamb" onclick="document.getElementById('sidebar').classList.toggle('buka')">☰</button>
-  <input class="search" id="searchTop" type="text" placeholder="Search workspace... (cari nama siswa)" oninput="filterDariTopbar(this.value)">
   <button class="btn-create" onclick="showView('hasil');setTimeout(function(){window.scrollTo({top:0})},50)">+ Atur jadwal</button>
   <button class="iconbtn" title="Export PDF" onclick="window.print()">⎙</button>
   <button class="iconbtn" title="Keluar (kunci PIN)" onclick="try{sessionStorage.removeItem('paskib_ok')}catch(e){};location.reload()">↪</button>
@@ -338,15 +340,10 @@
     </div>
     <div class="card hasil-lineup">
       <h2>Hasil rencana</h2>
-      <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain. Tabel 1 = ukuran sama, Tabel 2 = beda (jadi KHUSUS). Aktifkan <b>Mode geser</b> untuk tukar posisi dalam 1 minggu (baris 1↔2↔3, kiri↔tengah↔kanan) via klik 2x atau drag. Export via ikon <b>⎙</b> di bar atas — yang tercetak hanya line up formasi.</div>
+      <div class="info no-print">Tips: <b>klik nama di formasi</b> untuk mengganti pemain atau tukar posisi dalam 1 minggu. Geser langsung via <b>drag</b> antar kotak (layar sentuh: pakai daftar tukar di modal). Export via ikon <b>⎙</b> di bar atas — yang tercetak hanya line up formasi.</div>
       <div class="geser-bar no-print">
-        <button class="secondary" id="btnGeser" onclick="setGeserMode(!geserAktif)">↔ Mode geser: OFF</button>
-        <button class="secondary" id="btnBatalGeser" onclick="batalGeser()" style="display:none;">Batal pilih</button>
         <button class="secondary" id="btnUndo" onclick="undoRacikan()" title="Kembalikan 1 langkah racikan">↩ Undo</button>
-        <button class="secondary" id="btnSave" onclick="simpanRacikan()" title="Simpan racikan saat ini sebagai checkpoint">💾 Save</button>
-        <button class="secondary" id="btnMuatSave" onclick="muatRacikan()" title="Kembalikan ke checkpoint Save terakhir">📥 Muat simpanan</button>
-        <button class="secondary" id="btnAwal" onclick="kembaliKeAwal()" title="Hapus semua racikan, kembali ke hasil generate">⟲ Ke awal</button>
-        <span id="statusGeser"></span>
+        <button class="secondary" id="btnSave" onclick="simpanRacikan()" title="Simpan racikan saat ini">💾 Save</button>
         <span id="statusRacikan" style="font-size:12px;color:var(--abu);"></span>
       </div>
       <div id="hasilJadwal"></div>
@@ -408,12 +405,9 @@ const BLK_KEY = 'paskib_blokir_v1';
 const MANUAL_KEY = 'paskib_manual_edit_v1';
 const RIWAYAT_KEY = 'paskib_riwayat_v1';
 const DASAR_KEY = 'paskib_dasar_v1';
-const SAVE_KEY = 'paskib_racikan_save_v1';
 const PIN_GURU = '123';
 let bulanPlanGlobal = [];
 let targetGanti = null;
-let geserAktif = false;
-let geserSumber = null;
 let dasarPlan = {};
 let tumpukanUndo = [];
 const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -461,7 +455,7 @@ function hapusSemuaSiswa(){
   siswa = [];
   idCounter = 1;
   try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
-  try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
+  try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
   dasarPlan = {}; tumpukanUndo = [];
   simpanData();
   render();
@@ -535,7 +529,7 @@ function importExcel(event){
         simpanManual(mn);
       }catch(e){ console.error(e); }
       try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){ console.error(e); }
-      try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
+      try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
       dasarPlan = {}; tumpukanUndo = [];
       // Ban web (BLK, basis nama) dipertahankan utuh — klik Atur jadwal untuk generate ulang.
 
@@ -905,12 +899,6 @@ function showView(nama, opts){
   try{ if(location.hash !== '#'+nama) history.replaceState(null,'','#'+nama); }catch(e){}
   try{ document.getElementById('sidebar').classList.remove('buka'); }catch(e){}
   if(!opts || opts.scroll !== false){ try{ window.scrollTo({top:0}); }catch(e){} }
-}
-function filterDariTopbar(v){
-  const c = document.getElementById('cariSiswa'); if(c){ c.value = v; }
-  const r = document.getElementById('cariRekap'); if(r){ r.value = v; renderRekapFilter(); }
-  try{ render(); }catch(e){}
-  if(v) showView('data');
 }
 function renderRekapFilter(){
   const box = document.getElementById('hasilRekap'); if(!box) return;
@@ -1341,16 +1329,8 @@ function updateStatusRacikan(){
   try{
     const el = document.getElementById('statusRacikan');
     if(!el) return;
-    let info = '';
-    try{
-      const raw = localStorage.getItem(SAVE_KEY);
-      if(raw){
-        const sv = JSON.parse(raw);
-        if(sv && sv.waktu) info = ' · Simpanan: '+sv.waktu;
-      }
-    }catch(e){}
     const n = tumpukanUndo ? tumpukanUndo.length : 0;
-    el.textContent = (n>0 ? ('Undo tersedia: '+n+' langkah') : 'Belum ada racikan') + info;
+    el.textContent = (n>0 ? ('Undo tersedia: '+n+' langkah') : 'Belum ada racikan');
     const bU = document.getElementById('btnUndo');
     if(bU) bU.disabled = !(n>0);
   }catch(e){}
@@ -1360,7 +1340,6 @@ function undoRacikan(){
   const prev = tumpukanUndo.pop();
   try{ simpanManual(JSON.parse(prev)); }catch(e){ return; }
   simpanUndoStack();
-  geserSumber = null;
   const y = window.scrollY;
   aturJadwal({nav:false, keepScroll:true, y});
   updateStatusRacikan();
@@ -1368,37 +1347,9 @@ function undoRacikan(){
 }
 function simpanRacikan(){
   if(!bulanPlanGlobal || !bulanPlanGlobal.length){ alert('Belum ada jadwal.'); return; }
-  try{
-    const data = {waktu:new Date().toLocaleString('id-ID'), manual:muatManual(), dasar:dasarPlan};
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-  }catch(e){ alert('Gagal menyimpan.'); return; }
+  try{ simpanManual(muatManual()); simpanRiwayat(); }catch(e){ alert('Gagal menyimpan.'); return; }
   updateStatusRacikan();
   tandaiTersimpan('Racikan disimpan · ');
-}
-function muatRacikan(){
-  let sv = null;
-  try{ sv = JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){}
-  if(!sv || !sv.manual){ alert('Belum ada simpanan. Klik Save dulu.'); return; }
-  if(!confirm('Kembalikan ke simpanan '+((sv.waktu||''))+'? Racikan saat ini akan masuk undo.')) return;
-  dorongUndo();
-  try{ simpanManual(sv.manual||{}); }catch(e){}
-  if(sv.dasar) { dasarPlan = sv.dasar; simpanDasar(dasarPlan); }
-  const y = window.scrollY;
-  aturJadwal({nav:false, keepScroll:true, y});
-  updateStatusRacikan();
-  tandaiTersimpan('Simpanan dimuat · ');
-}
-function kembaliKeAwal(){
-  const m = muatManual();
-  if(!Object.keys(m).length){ alert('Sudah di awal (tidak ada racikan).'); return; }
-  if(!confirm('Hapus SEMUA racikan (ganti pemain + geser) dan kembali ke hasil generate awal?')) return;
-  dorongUndo();
-  try{ localStorage.removeItem(MANUAL_KEY); }catch(e){}
-  geserSumber = null;
-  const y = window.scrollY;
-  aturJadwal({nav:false, keepScroll:true, y});
-  updateStatusRacikan();
-  tandaiTersimpan('Kembali ke awal · ');
 }
 function gridHtml(w, idCtx){
   const posisiNama = [
@@ -1425,9 +1376,8 @@ function gridHtml(w, idCtx){
     const isi = a
       ? `<div class="f-dot"></div><div class="f-nama">${chip}${nama}${tagEdit}</div>`
       : `<div class="f-nama kosong-slot">— kosong —${tagEdit}</div>`;
-    const klik = (typeof idCtx !== 'undefined' && idCtx) ? ` onclick="klikSel('${idCtx}', ${i})" title="Klik: ganti / geser" draggable="true" ondragstart="dragMulai(event,'${idCtx}',${i})" ondragover="dragOver(event)" ondrop="dropSlot(event,'${idCtx}',${i})"` : '';
-    const isSumber = (typeof idCtx !== 'undefined' && idCtx && typeof geserSumber !== 'undefined' && geserSumber && geserSumber.ctx===idCtx && geserSumber.slot===i);
-    html += `<div class="f-cell bisa-edit${isSumber?' geser-sumber':''}"${klik}>
+    const klik = (typeof idCtx !== 'undefined' && idCtx) ? ` onclick="bukaGanti('${idCtx}', ${i})" title="Klik untuk ganti / tukar posisi" draggable="true" ondragstart="dragMulai(event,'${idCtx}',${i})" ondragover="dragOver(event)" ondrop="dropSlot(event,'${idCtx}',${i})"` : '';
+    html += `<div class="f-cell bisa-edit"${klik}>
       <div class="f-pos">${pos}</div>
       ${isi}
     </div>`;
@@ -1588,75 +1538,13 @@ function ukuranAcuan(ctx, slot){
   for(let br=1;br<=3;br++){ const uu=ukuranBaris(arr,br); if(uu&&uu!=='Campur') return uu; }
   return null;
 }
-// ===== GESER POSISI DALAM 1 MINGGU (klik 2x / drag) =====
+// ===== GESER POSISI DALAM 1 MINGGU (drag + tukar via modal) =====
 function namaSlot(i){
   const p = [['Baris 1','Kiri'],['Baris 1','Tengah'],['Baris 1','Kanan'],['Baris 2','Kiri'],['Baris 2','Tengah'],['Baris 2','Kanan'],['Baris 3','Kiri'],['Baris 3','Tengah'],['Baris 3','Kanan']];
   return p[i] ? (p[i][0]+' '+p[i][1]) : ('Slot '+(i+1));
 }
-function updateGeserUI(){
-  try{
-    const b = document.getElementById('btnGeser');
-    if(b) b.textContent = geserAktif ? '↔ Mode geser: ON' : '↔ Mode geser: OFF';
-    const bb = document.getElementById('btnBatalGeser');
-    if(bb) bb.style.display = (geserAktif && geserSumber) ? '' : 'none';
-    const st = document.getElementById('statusGeser');
-    if(st){
-      if(!geserAktif) st.textContent = '';
-      else if(!geserSumber) st.textContent = 'Klik 1 kotak sebagai sumber, lalu klik kotak tujuan (1 minggu yang sama). Bisa juga drag.';
-      else {
-        const arr = getArrRef(geserSumber.ctx);
-        const s = arr ? arr[geserSumber.slot] : null;
-        st.textContent = 'Sumber: ' + (s ? s.nama : '(kosong)') + ' @ ' + namaSlot(geserSumber.slot) + ' — klik tujuan untuk tukar.';
-      }
-    }
-  }catch(e){}
-}
-function setGeserMode(on){
-  geserAktif = !!on;
-  geserSumber = null;
-  updateGeserUI();
-  if(bulanPlanGlobal && bulanPlanGlobal.length){
-    const y = window.scrollY;
-    tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y});
-    updateGeserUI();
-  }
-}
-function batalGeser(){
-  geserSumber = null;
-  updateGeserUI();
-  if(bulanPlanGlobal && bulanPlanGlobal.length){
-    const y = window.scrollY;
-    tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y});
-    updateGeserUI();
-  }
-}
-function klikSel(ctx, slot){
-  if(!geserAktif){ bukaGanti(ctx, slot); return; }
-  const arr = getArrRef(ctx);
-  if(!arr){ alert('Jadwal belum siap.'); return; }
-  if(!geserSumber){
-    geserSumber = {ctx, slot};
-    const y = window.scrollY;
-    tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y});
-    updateGeserUI();
-    return;
-  }
-  if(geserSumber.ctx === ctx && geserSumber.slot === slot){
-    batalGeser();
-    return;
-  }
-  if(geserSumber.ctx !== ctx){
-    if(!confirm('Sumber beda minggu. Geser hanya dalam 1 minggu yang sama. Pindah sumber ke sini?')) return;
-    geserSumber = {ctx, slot};
-    const y2 = window.scrollY;
-    tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y:y2});
-    updateGeserUI();
-    return;
-  }
-  tukarSlot(ctx, geserSumber.slot, slot);
-}
 function tukarSlot(ctx, a, b){
-  if(a === b){ batalGeser(); return; }
+  if(a === b) return;
   const arr = getArrRef(ctx);
   if(!arr) return;
   dorongUndo();
@@ -1671,10 +1559,9 @@ function tukarSlot(ctx, a, b){
     if(base!==null && cur===base) delete m[k]; else m[k]=cur;
   });
   simpanManual(m);
-  geserSumber = null;
   const y = window.scrollY;
   tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y});
-  updateGeserUI(); updateStatusRacikan();
+  updateStatusRacikan();
   tandaiTersimpan('Geser tersimpan · ');
 }
 function dragMulai(ev, ctx, slot){
@@ -1705,6 +1592,34 @@ function bukaGanti(ctx, slot){
   document.getElementById('cariGanti').value='';
   document.getElementById('modalGanti').style.display='flex';
   renderDaftarGanti();
+  renderDaftarTukar();
+}
+function renderDaftarTukar(){
+  const box = document.getElementById('daftarTukar');
+  if(!box || !targetGanti) return;
+  const arr = getArrRef(targetGanti.ctx);
+  if(!arr){ box.innerHTML = '<div class="opsi">Jadwal belum siap.</div>'; return; }
+  let html = '';
+  for(let i=0;i<9;i++){
+    if(i===targetGanti.slot) continue;
+    const s = arr[i];
+    const label = namaSlot(i)+' — '+(s ? esc(s.nama)+' ('+esc(s.ukuran)+')' : '<i>kosong</i>');
+    html += '<div class="opsi"><span>'+label+'</span><button onclick="tukarDengan('+i+')">Tukar</button></div>';
+  }
+  box.innerHTML = html || '<div class="opsi">Tidak ada slot lain.</div>';
+}
+function tukarDengan(slotTujuan){
+  if(!targetGanti) return;
+  const ctx = targetGanti.ctx, a = targetGanti.slot;
+  if(slotTujuan===a) return;
+  tukarSlot(ctx, a, slotTujuan);
+  targetGanti = {ctx, slot:slotTujuan};
+  renderDaftarGanti();
+  renderDaftarTukar();
+  const cur = (getArrRef(ctx)||[])[slotTujuan];
+  document.getElementById('infoGanti').innerHTML = cur
+    ? ('Sekarang: <b>'+esc(cur.nama)+'</b> ('+esc(cur.ukuran)+'/'+esc(cur.jk)+') — baru ditukar ke '+esc(namaSlot(slotTujuan))+'.')
+    : ('Slot '+esc(namaSlot(slotTujuan))+' sekarang kosong setelah tukar.');
 }
 function tutupGanti(){ document.getElementById('modalGanti').style.display='none'; targetGanti=null; }
 // Peta frekuensi tampil live (termasuk edit manual) untuk pewarnaan hijau/kuning/merah.
@@ -1882,7 +1797,7 @@ initPin();
 pulihkanRiwayat();
 sinkronBan();
 render();
-try{ updateStatusRacikan(); updateGeserUI(); }catch(e){}
+try{ updateStatusRacikan(); }catch(e){}
 try{
   let h = (location.hash||'').replace('#','');
   if(h === 'atur') h = 'hasil';
