@@ -342,7 +342,12 @@
       <div class="geser-bar no-print">
         <button class="secondary" id="btnGeser" onclick="setGeserMode(!geserAktif)">↔ Mode geser: OFF</button>
         <button class="secondary" id="btnBatalGeser" onclick="batalGeser()" style="display:none;">Batal pilih</button>
+        <button class="secondary" id="btnUndo" onclick="undoRacikan()" title="Kembalikan 1 langkah racikan">↩ Undo</button>
+        <button class="secondary" id="btnSave" onclick="simpanRacikan()" title="Simpan racikan saat ini sebagai checkpoint">💾 Save</button>
+        <button class="secondary" id="btnMuatSave" onclick="muatRacikan()" title="Kembalikan ke checkpoint Save terakhir">📥 Muat simpanan</button>
+        <button class="secondary" id="btnAwal" onclick="kembaliKeAwal()" title="Hapus semua racikan, kembali ke hasil generate">⟲ Ke awal</button>
         <span id="statusGeser"></span>
+        <span id="statusRacikan" style="font-size:12px;color:var(--abu);"></span>
       </div>
       <div id="hasilJadwal"></div>
       <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
@@ -402,11 +407,15 @@ const EKSTRA_KEY = 'paskib_ekstra_v1';
 const BLK_KEY = 'paskib_blokir_v1';
 const MANUAL_KEY = 'paskib_manual_edit_v1';
 const RIWAYAT_KEY = 'paskib_riwayat_v1';
+const DASAR_KEY = 'paskib_dasar_v1';
+const SAVE_KEY = 'paskib_racikan_save_v1';
 const PIN_GURU = '123';
 let bulanPlanGlobal = [];
 let targetGanti = null;
 let geserAktif = false;
 let geserSumber = null;
+let dasarPlan = {};
+let tumpukanUndo = [];
 const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 let siswa = [];
 let idCounter = 1;
@@ -452,6 +461,8 @@ function hapusSemuaSiswa(){
   siswa = [];
   idCounter = 1;
   try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
+  try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
+  dasarPlan = {}; tumpukanUndo = [];
   simpanData();
   render();
 }
@@ -524,6 +535,8 @@ function importExcel(event){
         simpanManual(mn);
       }catch(e){ console.error(e); }
       try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){ console.error(e); }
+      try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem(SAVE_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
+      dasarPlan = {}; tumpukanUndo = [];
       // Ban web (BLK, basis nama) dipertahankan utuh — klik Atur jadwal untuk generate ulang.
 
       simpanData();
@@ -1224,8 +1237,12 @@ function aturJadwal(opts){
     pesanError.innerHTML = `<div class="warn">Ada bulan yang hanya memiliki kurang dari 4 hari Senin sehingga dilewati.</div>`;
   }
 
+  dasarPlan = snapshotDasarDariPlan(bulanPlan);
+  simpanDasar(dasarPlan);
+  if(!(opts && opts.keepScroll)){ tumpukanUndo = []; simpanUndoStack(); }
   terapkanManual(bulanPlan);
   tampilkanJadwal(bulanPlan, opts);
+  try{ updateStatusRacikan(); }catch(e){}
 }
 
 // ===== REKAP JUMLAH TAMPIL =====
@@ -1278,6 +1295,111 @@ function simpanManual(o){ try{ localStorage.setItem(MANUAL_KEY, JSON.stringify(o
 function slotKey(ctx, slot){ return ctx + '-' + slot; }
 function isEdited(ctx, slot){ const m = muatManual(); return Object.prototype.hasOwnProperty.call(m, slotKey(ctx, slot)); }
 function adaEditMinggu(bid, ming){ const m = muatManual(); const p = bid + '-' + ming + '-'; return Object.keys(m).some(k => k.indexOf(p) === 0); }
+// ===== DASAR GENERATE + UNDO/SAVE RACIKAN =====
+function muatDasar(){ try{ return JSON.parse(localStorage.getItem(DASAR_KEY)) || {}; }catch(e){ return {}; } }
+function simpanDasar(o){ try{ localStorage.setItem(DASAR_KEY, JSON.stringify(o)); }catch(e){ console.error(e); } }
+function snapshotDasarDariPlan(bulanPlan){
+  const d = {};
+  const ids = (arr) => (arr||[]).map(s => s ? s.id : 0);
+  bulanPlan.forEach(b=>{
+    if(b.skip) return;
+    const bid = b.thn+'-'+b.bln;
+    const mMap = {1:b.w1,2:b.w2,3:b.w3,4:b.w4,5:b.w5};
+    Object.keys(mMap).forEach(ming=>{
+      const arr = mMap[ming];
+      if(!arr) return;
+      ids(arr).forEach((id,slot)=>{ d[bid+'-'+ming+'-'+slot]=id; });
+    });
+    (b.ekstra||[]).forEach((e,ei)=>{
+      ids(e.w).forEach((id,slot)=>{ d[bid+'-e'+ei+'-'+slot]=id; });
+    });
+  });
+  return d;
+}
+function muatUndoStack(){ try{ return JSON.parse(localStorage.getItem('paskib_undo_v1')) || []; }catch(e){ return []; } }
+function simpanUndoStack(){ try{ localStorage.setItem('paskib_undo_v1', JSON.stringify(tumpukanUndo.slice(-30))); }catch(e){} }
+function dorongUndo(){
+  try{
+    tumpukanUndo.push(JSON.stringify(muatManual()));
+    if(tumpukanUndo.length>30) tumpukanUndo = tumpukanUndo.slice(-30);
+    simpanUndoStack();
+  }catch(e){}
+  updateStatusRacikan();
+}
+// Samakan 1 slot manual vs dasar: sama → hapus key (EDIT hilang), beda → simpan id.
+function rapikanSlotManual(ctx, slot){
+  const m = muatManual();
+  const k = slotKey(ctx, slot);
+  const arr = getArrRef(ctx);
+  const cur = arr ? (arr[slot] ? arr[slot].id : 0) : (m[k]!=null?m[k]:0);
+  const base = Object.prototype.hasOwnProperty.call(dasarPlan, k) ? dasarPlan[k] : null;
+  if(base===null) return m;
+  if(cur===base) delete m[k]; else m[k]=cur;
+  return m;
+}
+function updateStatusRacikan(){
+  try{
+    const el = document.getElementById('statusRacikan');
+    if(!el) return;
+    let info = '';
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(raw){
+        const sv = JSON.parse(raw);
+        if(sv && sv.waktu) info = ' · Simpanan: '+sv.waktu;
+      }
+    }catch(e){}
+    const n = tumpukanUndo ? tumpukanUndo.length : 0;
+    el.textContent = (n>0 ? ('Undo tersedia: '+n+' langkah') : 'Belum ada racikan') + info;
+    const bU = document.getElementById('btnUndo');
+    if(bU) bU.disabled = !(n>0);
+  }catch(e){}
+}
+function undoRacikan(){
+  if(!tumpukanUndo.length){ alert('Belum ada langkah untuk di-undo.'); return; }
+  const prev = tumpukanUndo.pop();
+  try{ simpanManual(JSON.parse(prev)); }catch(e){ return; }
+  simpanUndoStack();
+  geserSumber = null;
+  const y = window.scrollY;
+  aturJadwal({nav:false, keepScroll:true, y});
+  updateStatusRacikan();
+  tandaiTersimpan('Undo · ');
+}
+function simpanRacikan(){
+  if(!bulanPlanGlobal || !bulanPlanGlobal.length){ alert('Belum ada jadwal.'); return; }
+  try{
+    const data = {waktu:new Date().toLocaleString('id-ID'), manual:muatManual(), dasar:dasarPlan};
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  }catch(e){ alert('Gagal menyimpan.'); return; }
+  updateStatusRacikan();
+  tandaiTersimpan('Racikan disimpan · ');
+}
+function muatRacikan(){
+  let sv = null;
+  try{ sv = JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){}
+  if(!sv || !sv.manual){ alert('Belum ada simpanan. Klik Save dulu.'); return; }
+  if(!confirm('Kembalikan ke simpanan '+((sv.waktu||''))+'? Racikan saat ini akan masuk undo.')) return;
+  dorongUndo();
+  try{ simpanManual(sv.manual||{}); }catch(e){}
+  if(sv.dasar) { dasarPlan = sv.dasar; simpanDasar(dasarPlan); }
+  const y = window.scrollY;
+  aturJadwal({nav:false, keepScroll:true, y});
+  updateStatusRacikan();
+  tandaiTersimpan('Simpanan dimuat · ');
+}
+function kembaliKeAwal(){
+  const m = muatManual();
+  if(!Object.keys(m).length){ alert('Sudah di awal (tidak ada racikan).'); return; }
+  if(!confirm('Hapus SEMUA racikan (ganti pemain + geser) dan kembali ke hasil generate awal?')) return;
+  dorongUndo();
+  try{ localStorage.removeItem(MANUAL_KEY); }catch(e){}
+  geserSumber = null;
+  const y = window.scrollY;
+  aturJadwal({nav:false, keepScroll:true, y});
+  updateStatusRacikan();
+  tandaiTersimpan('Kembali ke awal · ');
+}
 function gridHtml(w, idCtx){
   const posisiNama = [
     ['BARIS 1','KIRI'],['BARIS 1','TENGAH'],['BARIS 1','KANAN'],
@@ -1537,17 +1659,22 @@ function tukarSlot(ctx, a, b){
   if(a === b){ batalGeser(); return; }
   const arr = getArrRef(ctx);
   if(!arr) return;
+  dorongUndo();
   const tmp = arr[a];
   arr[a] = arr[b];
   arr[b] = tmp;
   const m = muatManual();
-  m[slotKey(ctx, a)] = arr[a] ? arr[a].id : 0;
-  m[slotKey(ctx, b)] = arr[b] ? arr[b].id : 0;
+  [a,b].forEach(function(slot){
+    const k = slotKey(ctx, slot);
+    const cur = arr[slot] ? arr[slot].id : 0;
+    const base = Object.prototype.hasOwnProperty.call(dasarPlan, k) ? dasarPlan[k] : null;
+    if(base!==null && cur===base) delete m[k]; else m[k]=cur;
+  });
   simpanManual(m);
   geserSumber = null;
   const y = window.scrollY;
   tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y});
-  updateGeserUI();
+  updateGeserUI(); updateStatusRacikan();
   tandaiTersimpan('Geser tersimpan · ');
 }
 function dragMulai(ev, ctx, slot){
@@ -1647,13 +1774,15 @@ function simpanGanti(idBaru, beda){
   if(beda && acuan && s.ukuran!==acuan){
     if(!confirm(s.nama+' berukuran '+s.ukuran+' (slot ini '+acuan+'). Lanjut? Minggu ini akan ditandai LINE UP KHUSUS.')) return;
   }
+  dorongUndo();
   arr[targetGanti.slot]=s;
-  const m = muatManual(); m[slotKey(targetGanti.ctx,targetGanti.slot)]=s.id; simpanManual(m);
+  const m = rapikanSlotManual(targetGanti.ctx, targetGanti.slot); simpanManual(m);
   const y = window.scrollY;
-  tutupGanti(); tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y}); tandaiTersimpan('Edit tersimpan · ');
+  tutupGanti(); tampilkanJadwal(bulanPlanGlobal, {nav:false, keepScroll:true, y}); tandaiTersimpan('Edit tersimpan · '); updateStatusRacikan();
 }
 function resetSatuSlot(){
   if(!targetGanti) return;
+  dorongUndo();
   const m = muatManual(); delete m[slotKey(targetGanti.ctx,targetGanti.slot)]; simpanManual(m);
   const y = window.scrollY;
   tutupGanti(); aturJadwal({nav:false, keepScroll:true, y});
@@ -1708,10 +1837,10 @@ function simpanRiwayat(){
         k:[b.khusus1||false, b.khusus2||false, b.khusus3||false, b.khusus4||false, b.khusus5||false],
         e:(b.ekstra||[]).map(x=>({t:x.tanggal.getTime(), w:ids(x.w)}))};
     });
-    localStorage.setItem(RIWAYAT_KEY, JSON.stringify({v:1,
+    localStorage.setItem(RIWAYAT_KEY, JSON.stringify({v:2,
       bulan:document.getElementById('bulan').value,
       tahun:document.getElementById('tahun').value,
-      jml:document.getElementById('jmlBulan').value, plan}));
+      jml:document.getElementById('jmlBulan').value, plan, dasar:dasarPlan}));
   }catch(e){}
 }
 function pulihkanRiwayat(){
@@ -1719,7 +1848,7 @@ function pulihkanRiwayat(){
     const raw = localStorage.getItem(RIWAYAT_KEY);
     if(!raw || !siswa.length) return;
     const r = JSON.parse(raw);
-    if(!r || r.v!==1 || !r.plan || !r.plan.length) return;
+    if(!r || (r.v!==1 && r.v!==2) || !r.plan || !r.plan.length) return;
     const map = {}; siswa.forEach(s=>map[s.id]=s);
     const get = (id) => map[id] || null;
     document.getElementById('bulan').value = r.bulan;
@@ -1739,16 +1868,21 @@ function pulihkanRiwayat(){
         ekstra:(p.e||[]).map(x=>({tanggal:new Date(x.t), w:(x.w||[]).map(get)}))};
     });
     terapkanManual(plan);
+    if(r.v===2 && r.dasar) { dasarPlan = r.dasar; try{ simpanDasar(dasarPlan); }catch(e){} }
+    else { try{ dasarPlan = muatDasar(); }catch(e){ dasarPlan = {}; } }
     tampilkanJadwal(plan, {nav:false});
   }catch(e){ console.error('Gagal memulihkan riwayat', e); }
 }
 
 muatData();
+try{ dasarPlan = muatDasar(); }catch(e){ dasarPlan = {}; }
+try{ tumpukanUndo = muatUndoStack(); }catch(e){ tumpukanUndo = []; }
 render();
 initPin();
 pulihkanRiwayat();
 sinkronBan();
 render();
+try{ updateStatusRacikan(); updateGeserUI(); }catch(e){}
 try{
   let h = (location.hash||'').replace('#','');
   if(h === 'atur') h = 'hasil';
