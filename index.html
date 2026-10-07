@@ -175,8 +175,29 @@
   .tbl-judul.beda{color:var(--merah);}
   .tbl-note{font-size:11px;color:var(--abu);margin-bottom:2px;}
 
+  /* ===== HIDE/SHOW PER BULAN + NAV LONCAT ===== */
+  .nav-bulan{background:#F1ECE2;border:1px solid var(--garis);border-radius:14px;padding:10px 12px;margin-top:12px;box-shadow:var(--clay-shadow);}
+  .nav-bulan-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .nav-bulan-row button{margin-top:0;padding:6px 14px;font-size:12px;}
+  .nav-bulan-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .nav-bulan-list button{margin-top:0;padding:5px 11px;font-size:12px;background:#F7F3EC;color:#3A3A38;border:1px solid var(--garis);box-shadow:var(--clay-shadow);border-radius:999px;}
+  .nav-bulan-list button:hover{background:#fff;}
+  .nav-bulan-list button.aktif-nav{background:#3A3A38;color:#F7F3EC;}
+  #navBulanInfo{font-size:12px;color:var(--abu);}
+  .monthcard .m-head{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;user-select:none;}
+  .monthcard .m-head .judul{cursor:pointer;}
+  .monthcard .m-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .monthcard .ringkasan{font-size:11px;color:var(--abu);}
+  .monthcard .btn-toggle{margin-top:0;padding:5px 13px;font-size:12px;background:#F7F3EC;color:#3A3A38;border:1px solid var(--garis);box-shadow:var(--clay-shadow);border-radius:999px;white-space:nowrap;}
+  .monthcard .btn-toggle:hover{background:#fff;}
+  .monthcard .m-body{margin-top:10px;}
+  .monthcard.ringkas .m-body{display:none;}
+  .monthcard.flash{outline:2px solid var(--emas);outline-offset:2px;}
+
 @media print{
-    #pinGate,#modalGanti,.sidebar,.topbar,.no-print,.linklike{display:none !important;}
+    #pinGate,#modalGanti,.sidebar,.topbar,.no-print,.linklike,#navBulanWrap{display:none !important;}
+    .monthcard.ringkas .m-body{display:block !important;}
+    .monthcard .m-head{cursor:default;}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page{size:A4 portrait;margin:8mm;}
     body{background:#fff;}
@@ -345,6 +366,14 @@
         <button class="secondary" id="btnUndo" onclick="undoRacikan()" title="Kembalikan 1 langkah racikan">↩ Undo</button>
         <button class="secondary" id="btnSave" onclick="simpanRacikan()" title="Simpan racikan saat ini">💾 Save</button>
         <span id="statusRacikan" style="font-size:12px;color:var(--abu);"></span>
+      </div>
+      <div class="nav-bulan no-print" id="navBulanWrap" style="display:none;">
+        <div class="nav-bulan-row">
+          <button class="secondary" onclick="bukaSemuaBulan()">Buka semua</button>
+          <button class="secondary" onclick="tutupSemuaBulan()">Tutup semua</button>
+          <span id="navBulanInfo"></span>
+        </div>
+        <div class="nav-bulan-list" id="navBulan"></div>
       </div>
       <div id="hasilJadwal"></div>
       <div id="kosongJadwal" class="kosong no-print">Belum ada jadwal. Isi data siswa lalu klik "Atur jadwal".</div>
@@ -1420,6 +1449,88 @@ function weekHtml(judul, tanggal, seragam, m, khusus, tanpaSeragam, idCtx){
   </div>`;
 }
 
+// ===== HIDE/SHOW PER BULAN (biar ke Desember tidak scroll jauh) =====
+let bulanCollapsed = {};
+try{ bulanCollapsed = JSON.parse(localStorage.getItem('paskib_collapse_v1')) || {}; }catch(e){ bulanCollapsed = {}; }
+function simpanCollapse(){ try{ localStorage.setItem('paskib_collapse_v1', JSON.stringify(bulanCollapsed)); }catch(e){} }
+function bidDariIndex(i){
+  const b = (bulanPlanGlobal||[])[i];
+  if(!b || b.skip) return null;
+  return b.thn + '-' + b.bln;
+}
+function toggleBulanByBid(bid, idx){
+  const card = document.getElementById('bulan-card-' + idx);
+  const isRingkas = card ? card.classList.contains('ringkas') : !!bulanCollapsed[bid];
+  if(isRingkas){ bulanCollapsed[bid] = false; try{ delete bulanCollapsed[bid]; }catch(e){} }
+  else { bulanCollapsed[bid] = true; }
+  simpanCollapse();
+  if(card){
+    card.classList.toggle('ringkas');
+    const btn = card.querySelector('.btn-toggle');
+    if(btn) btn.textContent = card.classList.contains('ringkas') ? 'Tampilkan ▾' : 'Sembunyikan ▴';
+  }
+  updateNavBulanInfo();
+}
+function bukaSemuaBulan(){
+  bulanCollapsed = {}; simpanCollapse();
+  document.querySelectorAll('.monthcard.ringkas').forEach(c=>{
+    c.classList.remove('ringkas');
+    const btn = c.querySelector('.btn-toggle');
+    if(btn) btn.textContent = 'Sembunyikan ▴';
+  });
+  updateNavBulanInfo();
+}
+function tutupSemuaBulan(){
+  (bulanPlanGlobal||[]).forEach((b,i)=>{
+    if(b.skip) return;
+    const bid = b.thn + '-' + b.bln;
+    bulanCollapsed[bid] = true;
+    const card = document.getElementById('bulan-card-' + i);
+    if(card){
+      card.classList.add('ringkas');
+      const btn = card.querySelector('.btn-toggle');
+      if(btn) btn.textContent = 'Tampilkan ▾';
+    }
+  });
+  simpanCollapse();
+  updateNavBulanInfo();
+}
+function lompatBulan(i){
+  const b = (bulanPlanGlobal||[])[i];
+  if(!b) return;
+  const card = document.getElementById('bulan-card-' + i);
+  if(!card) return;
+  if(!b.skip){
+    const bid = b.thn + '-' + b.bln;
+    if(card.classList.contains('ringkas')){
+      card.classList.remove('ringkas');
+      try{ delete bulanCollapsed[bid]; }catch(e){}
+      simpanCollapse();
+      const btn = card.querySelector('.btn-toggle');
+      if(btn) btn.textContent = 'Sembunyikan ▴';
+      updateNavBulanInfo();
+    }
+  }
+  try{ card.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){ card.scrollIntoView(); }
+  card.classList.remove('flash');
+  setTimeout(function(){ card.classList.add('flash'); }, 50);
+  setTimeout(function(){ card.classList.remove('flash'); }, 1200);
+}
+function updateNavBulanInfo(){
+  try{
+    const info = document.getElementById('navBulanInfo');
+    if(!info) return;
+    const total = (bulanPlanGlobal||[]).filter(b=>!b.skip).length;
+    const tutup = (bulanPlanGlobal||[]).filter(b=>!b.skip && bulanCollapsed[b.thn+'-'+b.bln]).length;
+    info.textContent = total ? (tutup + ' ditutup · ' + (total-tutup) + ' dibuka dari ' + total + ' bulan') : '';
+    document.querySelectorAll('#navBulan button').forEach(function(btn){
+      const idx = parseInt(btn.getAttribute('data-idx'),10);
+      const b = (bulanPlanGlobal||[])[idx];
+      if(b && !b.skip && bulanCollapsed[b.thn+'-'+b.bln]) btn.classList.add('aktif-nav');
+      else btn.classList.remove('aktif-nav');
+    });
+  }catch(e){}
+}
 function tampilkanJadwal(bulanPlan, opts){
   bulanPlanGlobal = bulanPlan;
   const hasil = document.getElementById('hasilJadwal');
@@ -1432,6 +1543,7 @@ function tampilkanJadwal(bulanPlan, opts){
   bulanPlan.forEach((b, i) => {
     const card = document.createElement('div');
     card.className = 'monthcard';
+    card.id = 'bulan-card-' + i;
     // Judul bulan berselang-seling (untuk membedakan bulan di layar & PDF):
     // bulan ke-1,3,5,.. = tulisan putih latar merah; bulan ke-2,4,6,.. = merah latar putih.
     const jdlKelas = (i % 2 === 0) ? 'jdlA' : 'jdlB';
@@ -1448,8 +1560,19 @@ function tampilkanJadwal(bulanPlan, opts){
       const k5 = b.khusus5 || (b.t5 && adaEditMinggu(bid,'5') ? true : false);
       const wk5 = b.t5 ? weekHtml('Senin ke-5', b.t5, 'PUTIH-PUTIH', b.w5, k5, false, bid + '-5') : '';
       const ekstraHtml = (b.ekstra || []).map((e, ei) => weekHtml('★ EKSTRA', e.tanggal, '', e.w, 'ekstra', true, bid + '-e' + ei)).join('');
+      const jmlSenin = b.t5 ? 5 : 4;
+      const jmlEkstra = (b.ekstra||[]).length;
+      const ringkasTxt = jmlSenin + ' Senin' + (jmlEkstra ? (' + ' + jmlEkstra + ' ekstra') : '');
+      const isRingkas = !!bulanCollapsed[bid];
+      if(isRingkas) card.classList.add('ringkas');
+      const btnTxt = isRingkas ? 'Tampilkan ▾' : 'Sembunyikan ▴';
       card.innerHTML =
-        '<div class="judul ' + jdlKelas + '">' + NAMA_BULAN[b.bln] + ' ' + b.thn + '</div>' +
+        '<div class="m-head" onclick="toggleBulanByBid(\'' + bid + '\',' + i + ')" title="Klik untuk sembunyikan/tampilkan bulan ini">' +
+          '<div class="judul ' + jdlKelas + '">' + NAMA_BULAN[b.bln] + ' ' + b.thn + '</div>' +
+          '<div class="m-actions"><span class="ringkasan no-print">' + ringkasTxt + '</span>' +
+          '<button class="btn-toggle no-print" onclick="event.stopPropagation();toggleBulanByBid(\'' + bid + '\',' + i + ')">' + btnTxt + '</button></div>' +
+        '</div>' +
+        '<div class="m-body">' +
         '<div class="weeks4">' +
           weekHtml('Senin ke-1', b.t1, 'PASKIBRA', b.w1, k1, false, bid + '-1') +
           weekHtml('Senin ke-2', b.t2, 'PUTIH-PUTIH', b.w2, k2, false, bid + '-2') +
@@ -1457,10 +1580,30 @@ function tampilkanJadwal(bulanPlan, opts){
           weekHtml('Senin ke-4', b.t4, 'PUTIH-PUTIH', b.w4, k4, false, bid + '-4') +
           wk5 +
         '</div>' +
-        ekstraHtml;
+        ekstraHtml +
+        '</div>';
     }
     hasil.appendChild(card);
   });
+  // ===== NAV LONCAT BULAN =====
+  try{
+    const navWrap = document.getElementById('navBulanWrap');
+    const navList = document.getElementById('navBulan');
+    if(navWrap && navList){
+      if(bulanPlan.filter(b=>!b.skip).length){
+        navWrap.style.display = '';
+        navList.innerHTML = bulanPlan.map((b,i)=>{
+          if(b.skip) return '';
+          const lbl = NAMA_BULAN[b.bln].slice(0,3) + ' ' + b.thn;
+          return '<button data-idx="' + i + '" onclick="lompatBulan(' + i + ')" title="Loncat ke ' + NAMA_BULAN[b.bln] + ' ' + b.thn + '">' + lbl + '</button>';
+        }).join('');
+      } else {
+        navWrap.style.display = 'none';
+        navList.innerHTML = '';
+      }
+      updateNavBulanInfo();
+    }
+  }catch(e){}
 
   const rekapCache2 = rekap;
   rekapCache = rekapCache2;
