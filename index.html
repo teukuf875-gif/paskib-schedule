@@ -174,6 +174,14 @@
   .tbl-judul{font-size:13px;font-weight:700;color:var(--hijau-tua);margin:12px 0 2px;}
   .tbl-judul.beda{color:var(--merah);}
   .tbl-note{font-size:11px;color:var(--abu);margin-bottom:2px;}
+  button.edit{background:transparent;color:#3A3A38;border:1px solid var(--garis);padding:4px 10px;font-size:12px;margin-top:0;box-shadow:var(--clay-shadow);border-radius:999px;background:#F7F3EC;}
+  button.edit:hover{background:#fff;border-color:var(--emas);}
+  td.aksi{white-space:nowrap;text-align:right;}
+  td.aksi button{margin-left:6px;}
+  #modalEditSiswa{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;}
+  #modalEditSiswa .mbox{background:#fff;border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow:auto;}
+  #modalEditSiswa .mbox h3{margin:0 0 4px;color:var(--hijau-tua);font-size:16px;}
+  #editSiswaError{color:var(--merah);font-size:13px;min-height:18px;margin-top:8px;}
 
   /* ===== HIDE/SHOW PER BULAN + NAV LONCAT ===== */
   .nav-bulan{background:#F1ECE2;border:1px solid var(--garis);border-radius:14px;padding:10px 12px;margin-top:12px;box-shadow:var(--clay-shadow);}
@@ -253,6 +261,32 @@
     <div class="btnrow" style="margin-top:12px;">
       <button class="secondary" onclick="tutupGanti()">Batal</button>
       <button class="secondary" onclick="resetSatuSlot()">Kembalikan asli</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalEditSiswa">
+  <div class="mbox">
+    <h3>Edit siswa</h3>
+    <div class="info" id="infoEditSiswa"></div>
+    <label for="editNama">Nama lengkap</label>
+    <input id="editNama" type="text" placeholder="Nama siswa..." onkeydown="if(event.key==='Enter')simpanEditSiswa()">
+    <div class="row2">
+      <div><label for="editUkuran">Ukuran</label>
+      <select id="editUkuran">
+        <option value="M2">M2</option><option value="M1">M1</option>
+        <option value="L">L</option><option value="S">S</option>
+      </select></div>
+      <div><label for="editJk">JK</label>
+      <select id="editJk">
+        <option value="LK">LK</option><option value="PR">PR</option>
+      </select></div>
+    </div>
+    <div class="info">Ganti ukuran / JK berpengaruh ke logika 1-ukuran & 2-ukuran — klik <b>Atur jadwal</b> ulang setelah simpan.</div>
+    <div id="editSiswaError"></div>
+    <div class="btnrow" style="margin-top:12px;">
+      <button class="secondary" onclick="tutupEditSiswa()">Batal</button>
+      <button onclick="simpanEditSiswa()">Simpan</button>
     </div>
   </div>
 </div>
@@ -488,6 +522,80 @@ function hapusSemuaSiswa(){
   dasarPlan = {}; tumpukanUndo = [];
   simpanData();
   render();
+}
+
+// ===== EDIT SISWA (nama / ukuran / JK via tombol Edit di tabel) =====
+let editSiswaId = null;
+function bukaEditSiswa(id){
+  const s = siswa.find(x => x.id === id);
+  if(!s){ alert('Siswa tidak ditemukan.'); return; }
+  editSiswaId = id;
+  try{
+    document.getElementById('editNama').value = s.nama;
+    document.getElementById('editUkuran').value = s.ukuran;
+    document.getElementById('editJk').value = s.jk;
+    document.getElementById('editSiswaError').textContent = '';
+    document.getElementById('infoEditSiswa').innerHTML = 'Mengedit: <b>' + esc(s.nama) + '</b> (' + esc(s.ukuran) + '/' + esc(s.jk) + ')';
+    document.getElementById('modalEditSiswa').style.display = 'flex';
+    setTimeout(function(){ const i=document.getElementById('editNama'); if(i){ i.focus(); i.select(); } }, 50);
+  }catch(e){ console.error(e); }
+}
+function tutupEditSiswa(){
+  try{ document.getElementById('modalEditSiswa').style.display = 'none'; }catch(e){}
+  editSiswaId = null;
+}
+function simpanEditSiswa(){
+  if(editSiswaId == null) return;
+  const s = siswa.find(x => x.id === editSiswaId);
+  if(!s){ alert('Siswa tidak ditemukan.'); tutupEditSiswa(); return; }
+  const errEl = document.getElementById('editSiswaError');
+  const namaBaru = (document.getElementById('editNama').value || '').trim().replace(/\s+/g,' ');
+  const ukuranBaru = (document.getElementById('editUkuran').value || '').toUpperCase();
+  const jkBaru = (document.getElementById('editJk').value || '').toUpperCase();
+  if(!namaBaru){ if(errEl) errEl.textContent = 'Nama tidak boleh kosong.'; return; }
+  if(!UKURAN_LIST.includes(ukuranBaru)){ if(errEl) errEl.textContent = 'Ukuran harus M2/M1/L/S.'; return; }
+  if(jkBaru !== 'LK' && jkBaru !== 'PR'){ if(errEl) errEl.textContent = 'JK harus LK/PR.'; return; }
+  const duplikat = siswa.some(x => x.id !== s.id && x.nama.toLowerCase() === namaBaru.toLowerCase());
+  if(duplikat){ if(errEl) errEl.textContent = 'Nama sudah dipakai siswa lain (cek besar-kecil & spasi).'; return; }
+  const namaBerubah = namaBaru !== s.nama;
+  const ukuranBerubah = ukuranBaru !== s.ukuran;
+  const jkBerubah = jkBaru !== s.jk;
+  if(!namaBerubah && !ukuranBerubah && !jkBerubah){ tutupEditSiswa(); return; }
+  const namaLama = s.nama;
+  s.nama = namaBaru; s.ukuran = ukuranBaru; s.jk = jkBaru;
+  // Ban web basis NAMA: ikut rename agar ban tetap nempel orang yang sama.
+  if(namaBerubah){
+    try{
+      const data = muatTidakTampil();
+      let ganti = 0;
+      Object.keys(data).forEach(k => {
+        data[k] = (data[k]||[]).map(nm => {
+          if(String(nm).toLowerCase() === namaLama.toLowerCase()){ ganti++; return namaBaru; }
+          return nm;
+        });
+      });
+      if(ganti) localStorage.setItem(BLK_KEY, JSON.stringify(data));
+    }catch(e){ console.error(e); }
+  }
+  // Ukuran/JK berubah = distribusi logika berubah: base & undo basi → buang,
+  // wajib klik Atur jadwal ulang (sama seperti import Excel).
+  let perluGenerate = false;
+  if(ukuranBerubah || jkBerubah){
+    perluGenerate = true;
+    try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
+    try{ localStorage.removeItem(DASAR_KEY); localStorage.removeItem('paskib_undo_v1'); }catch(e){}
+    dasarPlan = {}; tumpukanUndo = [];
+  } else {
+    try{ localStorage.removeItem(RIWAYAT_KEY); }catch(e){}
+  }
+  simpanData();
+  tutupEditSiswa();
+  render();
+  if(perluGenerate) tandaiTersimpan('Edit tersimpan · klik Atur jadwal · ');
+  else tandaiTersimpan('Edit tersimpan · ');
+  if(perluGenerate && bulanPlanGlobal && bulanPlanGlobal.length){
+    alert('Ukuran/JK berubah. Klik "Atur jadwal" untuk generate ulang agar pembagian adil.');
+  }
 }
 
 function importExcel(event){
@@ -901,7 +1009,7 @@ function render(){
         : `<span class="badge">LK</span>`;
       const banChip = banSet.has(s.nama.toLowerCase()) ? ' 🚫' : '';
       tr.innerHTML = `<td>${esc(s.nama)}${banChip}</td><td><span class="badge">${esc(s.ukuran)}</span></td><td>${badgeJk}</td>
-        <td><button class="hapus" onclick="hapusSiswa(${s.id})">Hapus</button></td>`;
+        <td class="aksi"><button class="edit" onclick="bukaEditSiswa(${s.id})">Edit</button><button class="hapus" onclick="hapusSiswa(${s.id})">Hapus</button></td>`;
       tabel.appendChild(tr);
     });
   }
@@ -1951,6 +2059,7 @@ document.getElementById('jmlBulan').addEventListener('change', function(){
   if(teks) teks.textContent = this.value;
 });
 document.getElementById('modalGanti').addEventListener('click', function(e){ if(e.target===this) tutupGanti(); });
+document.getElementById('modalEditSiswa').addEventListener('click', function(e){ if(e.target===this) tutupEditSiswa(); });
 </script>
 </body>
 </html>
